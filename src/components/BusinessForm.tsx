@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schemaTemplate from '@/data/schema-template.json';
 
@@ -57,6 +58,15 @@ interface BusinessData {
 
 const BusinessForm = () => {
   const { toast } = useToast();
+  const [currentTab, setCurrentTab] = useState('basic');
+  
+  const tabs = [
+    { id: 'basic', label: 'Basic Info', icon: Building2 },
+    { id: 'location', label: 'Location', icon: MapPin },
+    { id: 'hours', label: 'Hours & Services', icon: Clock },
+    { id: 'social', label: 'Social & Rating', icon: Share2 },
+    { id: 'branches', label: 'Branches', icon: Star }
+  ];
   const [data, setData] = useState<BusinessData>({
     businessName: '',
     legalName: '',
@@ -198,6 +208,42 @@ const BusinessForm = () => {
       ...prev,
       branches: prev.branches.filter((_, i) => i !== index)
     }));
+  };
+
+  const nextTab = () => {
+    const currentIndex = tabs.findIndex(tab => tab.id === currentTab);
+    if (currentIndex < tabs.length - 1) {
+      setCurrentTab(tabs[currentIndex + 1].id);
+    }
+  };
+
+  const previousTab = () => {
+    const currentIndex = tabs.findIndex(tab => tab.id === currentTab);
+    if (currentIndex > 0) {
+      setCurrentTab(tabs[currentIndex - 1].id);
+    }
+  };
+
+  const getProgress = () => {
+    const currentIndex = tabs.findIndex(tab => tab.id === currentTab);
+    return ((currentIndex + 1) / tabs.length) * 100;
+  };
+
+  const getSectionCompleteness = (tabId: string) => {
+    switch (tabId) {
+      case 'basic':
+        return data.businessName && data.website;
+      case 'location':
+        return data.street && data.city;
+      case 'hours':
+        return data.openingHours.length > 0;
+      case 'social':
+        return data.instagram || data.facebook || data.tiktok || data.linkedin;
+      case 'branches':
+        return true; // Optional section
+      default:
+        return false;
+    }
   };
 
   const generateSchema = () => {
@@ -357,33 +403,35 @@ const BusinessForm = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="basic" className="space-y-6">
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-muted-foreground">Progress</span>
+            <span className="text-sm font-medium text-muted-foreground">{Math.round(getProgress())}%</span>
+          </div>
+          <Progress value={getProgress()} className="h-2" />
+        </div>
+
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 w-full gap-1">
-            <TabsTrigger value="basic" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Basic Info</span>
-              <span className="sm:hidden">Basic</span>
-            </TabsTrigger>
-            <TabsTrigger value="location" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Location</span>
-              <span className="sm:hidden">Location</span>
-            </TabsTrigger>
-            <TabsTrigger value="hours" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Hours & Services</span>
-              <span className="sm:hidden">Hours</span>
-            </TabsTrigger>
-            <TabsTrigger value="social" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Social & Rating</span>
-              <span className="sm:hidden">Social</span>
-            </TabsTrigger>
-            <TabsTrigger value="branches" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Star className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Branches</span>
-              <span className="sm:hidden">Branches</span>
-            </TabsTrigger>
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isCompleted = getSectionCompleteness(tab.id);
+              return (
+                <TabsTrigger 
+                  key={tab.id}
+                  value={tab.id} 
+                  className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3 relative"
+                >
+                  {isCompleted && (
+                    <Check className="w-3 h-3 absolute -top-1 -right-1 text-green-500 bg-white rounded-full" />
+                  )}
+                  <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
 
           <TabsContent value="basic">
@@ -470,6 +518,26 @@ const BusinessForm = () => {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6">
+              <Button 
+                variant="outline" 
+                onClick={previousTab} 
+                disabled={currentTab === 'basic'}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button 
+                onClick={nextTab}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="location">
@@ -553,6 +621,25 @@ const BusinessForm = () => {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6">
+              <Button 
+                variant="outline" 
+                onClick={previousTab}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button 
+                onClick={nextTab}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="hours">
@@ -672,6 +759,25 @@ const BusinessForm = () => {
                 </CardContent>
               </Card>
             </div>
+            
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6">
+              <Button 
+                variant="outline" 
+                onClick={previousTab}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button 
+                onClick={nextTab}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="social">
@@ -750,6 +856,25 @@ const BusinessForm = () => {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6">
+              <Button 
+                variant="outline" 
+                onClick={previousTab}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button 
+                onClick={nextTab}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="branches">
@@ -865,19 +990,28 @@ const BusinessForm = () => {
                 </Button>
               </CardContent>
             </Card>
+            
+            {/* Final Section Navigation */}
+            <div className="flex justify-between items-center mt-6">
+              <Button 
+                variant="outline" 
+                onClick={previousTab}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button 
+                onClick={downloadSchema}
+                size="lg"
+                className="bg-gradient-primary hover:shadow-glow transition-smooth px-8 flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Generate & Download Schema
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
-
-        <div className="mt-8 text-center">
-          <Button 
-            onClick={downloadSchema}
-            size="lg"
-            className="bg-gradient-primary hover:shadow-glow transition-smooth px-8"
-          >
-            <Download className="w-5 h-5 mr-2" />
-            Generate & Download Schema
-          </Button>
-        </div>
       </div>
     </div>
   );
