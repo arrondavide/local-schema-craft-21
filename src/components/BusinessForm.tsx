@@ -130,6 +130,43 @@ const BusinessForm = () => {
     }));
   };
 
+  const addOpeningHours = () => {
+    setData(prev => ({
+      ...prev,
+      openingHours: [...prev.openingHours, { days: [], opens: '09:00', closes: '18:00' }]
+    }));
+  };
+
+  const updateOpeningHours = (index: number, field: 'opens' | 'closes', value: string) => {
+    setData(prev => ({
+      ...prev,
+      openingHours: prev.openingHours.map((hours, i) => 
+        i === index ? { ...hours, [field]: value } : hours
+      )
+    }));
+  };
+
+  const updateOpeningHoursDays = (index: number, day: string, checked: boolean) => {
+    setData(prev => ({
+      ...prev,
+      openingHours: prev.openingHours.map((hours, i) => 
+        i === index ? {
+          ...hours,
+          days: checked 
+            ? [...hours.days, day]
+            : hours.days.filter(d => d !== day)
+        } : hours
+      )
+    }));
+  };
+
+  const removeOpeningHours = (index: number) => {
+    setData(prev => ({
+      ...prev,
+      openingHours: prev.openingHours.filter((_, i) => i !== index)
+    }));
+  };
+
   const addBranch = () => {
     setData(prev => ({
       ...prev,
@@ -310,37 +347,42 @@ const BusinessForm = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-4xl">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
             AHM Local Schema Generator
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             Generate structured JSON-LD schemas for your business
           </p>
         </div>
 
         <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full">
-            <TabsTrigger value="basic" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              Basic Info
+          <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 w-full gap-1">
+            <TabsTrigger value="basic" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Basic Info</span>
+              <span className="sm:hidden">Basic</span>
             </TabsTrigger>
-            <TabsTrigger value="location" className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Location
+            <TabsTrigger value="location" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Location</span>
+              <span className="sm:hidden">Location</span>
             </TabsTrigger>
-            <TabsTrigger value="hours" className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Hours & Services
+            <TabsTrigger value="hours" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Hours & Services</span>
+              <span className="sm:hidden">Hours</span>
             </TabsTrigger>
-            <TabsTrigger value="social" className="flex items-center gap-2">
-              <Share2 className="w-4 h-4" />
-              Social & Rating
+            <TabsTrigger value="social" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Social & Rating</span>
+              <span className="sm:hidden">Social</span>
             </TabsTrigger>
-            <TabsTrigger value="branches" className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              Branches
+            <TabsTrigger value="branches" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Branches</span>
+              <span className="sm:hidden">Branches</span>
             </TabsTrigger>
           </TabsList>
 
@@ -524,23 +566,48 @@ const BusinessForm = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {data.openingHours.map((hours, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex flex-wrap gap-2 mb-2">
+                    <div key={index} className="p-4 border rounded-lg space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold">Schedule {index + 1}</h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeOpeningHours(index)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium mb-3 block">Select Days</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                            <label key={day} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={hours.days.includes(day)}
+                                onChange={(e) => updateOpeningHoursDays(index, day, e.target.checked)}
+                                className="rounded border-gray-300"
+                              />
+                              <span className="text-xs sm:text-sm">{day.slice(0, 3)}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
                         {hours.days.map(day => (
-                          <Badge key={day} variant="secondary">{day}</Badge>
+                          <Badge key={day} variant="secondary" className="text-xs">{day}</Badge>
                         ))}
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <Label>Opens</Label>
                           <Input
                             type="time"
                             value={hours.opens}
-                            onChange={(e) => {
-                              const newHours = [...data.openingHours];
-                              newHours[index].opens = e.target.value;
-                              updateField('openingHours', newHours);
-                            }}
+                            onChange={(e) => updateOpeningHours(index, 'opens', e.target.value)}
                           />
                         </div>
                         <div>
@@ -548,16 +615,16 @@ const BusinessForm = () => {
                           <Input
                             type="time"
                             value={hours.closes}
-                            onChange={(e) => {
-                              const newHours = [...data.openingHours];
-                              newHours[index].closes = e.target.value;
-                              updateField('openingHours', newHours);
-                            }}
+                            onChange={(e) => updateOpeningHours(index, 'closes', e.target.value)}
                           />
                         </div>
                       </div>
                     </div>
                   ))}
+                  <Button onClick={addOpeningHours} variant="outline" className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Opening Hours
+                  </Button>
                 </CardContent>
               </Card>
 
