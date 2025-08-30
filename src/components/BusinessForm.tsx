@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schemaTemplate from '@/data/schema-template.json';
@@ -18,6 +19,7 @@ interface BusinessData {
   logoUrl: string;
   heroImageUrl: string;
   phone: string;
+  phoneCode: string;
   email: string;
   street: string;
   city: string;
@@ -33,6 +35,7 @@ interface BusinessData {
   facebook: string;
   tiktok: string;
   linkedin: string;
+  currency: string;
   services: Array<{
     name: string;
     price: string;
@@ -74,6 +77,7 @@ const BusinessForm = () => {
     logoUrl: '',
     heroImageUrl: '',
     phone: '',
+    phoneCode: '+971',
     email: '',
     street: '',
     city: '',
@@ -89,6 +93,7 @@ const BusinessForm = () => {
     facebook: '',
     tiktok: '',
     linkedin: '',
+    currency: 'AED',
     services: [
       { name: 'Anti-Wrinkle Injections', price: '900', url: '' },
       { name: 'Dermal Filler (1ml)', price: '1200', url: '' }
@@ -249,87 +254,127 @@ const BusinessForm = () => {
   const generateSchema = () => {
     let schema = JSON.parse(JSON.stringify(schemaTemplate));
     
-    // Replace basic placeholders
-    const domain = data.website.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    schema['@id'] = `https://${domain}/#clinic`;
-    schema.name = data.businessName || 'YOUR CLINIC NAME';
-    schema.legalName = data.legalName || 'YOUR LEGAL ENTITY (OPTIONAL)';
-    schema.url = data.website || 'https://YOUR-DOMAIN/';
-    schema.telephone = data.phone || '+971-XX-XXX-XXXX';
-    schema.email = data.email || 'INFO@YOUR-DOMAIN';
+    // Helper function to set property only if value exists
+    const setIfExists = (obj: any, key: string, value: any, fallback?: any) => {
+      if (value && value.trim && value.trim() !== '') {
+        obj[key] = value;
+      } else if (fallback !== undefined) {
+        obj[key] = fallback;
+      }
+    };
+
+    // Replace basic placeholders only if data exists
+    const domain = data.website ? data.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : 'YOUR-DOMAIN';
     
-    // Update images
-    if (data.heroImageUrl || data.logoUrl) {
-      schema.image = [
-        data.heroImageUrl || `https://${domain}/path/hero.jpg`,
-        data.logoUrl || `https://${domain}/path/logo.png`
-      ];
+    setIfExists(schema, '@id', data.website ? `https://${domain}/#clinic` : undefined, `https://YOUR-DOMAIN/#clinic`);
+    setIfExists(schema, 'name', data.businessName, 'YOUR CLINIC NAME');
+    setIfExists(schema, 'url', data.website, 'https://YOUR-DOMAIN/');
+    setIfExists(schema, 'telephone', data.phone ? `${data.phoneCode}-${data.phone}` : undefined, '+971-XX-XXX-XXXX');
+    setIfExists(schema, 'email', data.email, 'INFO@YOUR-DOMAIN');
+    
+    // Only add legalName if provided
+    if (data.legalName && data.legalName.trim()) {
+      schema.legalName = data.legalName;
+    } else {
+      delete schema.legalName;
     }
-    schema.logo = data.logoUrl || `https://${domain}/path/logo.png`;
     
-    // Update address
-    schema.address.streetAddress = data.street || 'STREET, BUILDING, UNIT';
-    schema.address.addressLocality = data.city || 'CITY';
-    schema.address.addressRegion = data.emirate || 'EMIRATE/REGION';
-    schema.address.postalCode = data.postalCode || 'POSTCODE';
-    schema.address.addressCountry = data.country;
+    // Update images only if provided
+    const images = [];
+    if (data.heroImageUrl && data.heroImageUrl.trim()) images.push(data.heroImageUrl);
+    if (data.logoUrl && data.logoUrl.trim()) images.push(data.logoUrl);
     
-    // Update geo coordinates
+    if (images.length > 0) {
+      schema.image = images;
+      schema.logo = data.logoUrl || images[0];
+    } else {
+      schema.image = [`https://${domain}/path/hero.jpg`, `https://${domain}/path/logo.png`];
+      schema.logo = `https://${domain}/path/logo.png`;
+    }
+    
+    // Update address only if some fields are provided
+    const hasAddressData = data.street || data.city || data.emirate || data.postalCode;
+    if (hasAddressData) {
+      setIfExists(schema.address, 'streetAddress', data.street, 'STREET, BUILDING, UNIT');
+      setIfExists(schema.address, 'addressLocality', data.city, 'CITY');
+      setIfExists(schema.address, 'addressRegion', data.emirate, 'EMIRATE/REGION');
+      setIfExists(schema.address, 'postalCode', data.postalCode, 'POSTCODE');
+      schema.address.addressCountry = data.country;
+    }
+    
+    // Update geo coordinates only if both are provided
     if (data.latitude && data.longitude) {
       schema.geo.latitude = parseFloat(data.latitude);
       schema.geo.longitude = parseFloat(data.longitude);
       schema.hasMap = `https://maps.google.com/?q=${data.latitude},${data.longitude}`;
+    } else {
+      delete schema.geo;
+      delete schema.hasMap;
     }
     
-    // Update social links
+    // Update social links only if provided
     const socialLinks = [];
-    if (data.instagram) socialLinks.push(`https://www.instagram.com/${data.instagram}`);
-    if (data.facebook) socialLinks.push(`https://www.facebook.com/${data.facebook}`);
-    if (data.tiktok) socialLinks.push(`https://www.tiktok.com/@${data.tiktok}`);
-    if (data.linkedin) socialLinks.push(`https://www.linkedin.com/company/${data.linkedin}`);
+    if (data.instagram && data.instagram.trim()) socialLinks.push(`https://www.instagram.com/${data.instagram}`);
+    if (data.facebook && data.facebook.trim()) socialLinks.push(`https://www.facebook.com/${data.facebook}`);
+    if (data.tiktok && data.tiktok.trim()) socialLinks.push(`https://www.tiktok.com/@${data.tiktok}`);
+    if (data.linkedin && data.linkedin.trim()) socialLinks.push(`https://www.linkedin.com/company/${data.linkedin}`);
     
     if (socialLinks.length > 0) {
       schema.sameAs = socialLinks;
+    } else {
+      delete schema.sameAs;
     }
     
-    // Update services
-    if (data.services.some(s => s.name)) {
-      schema.makesOffer.itemListElement = data.services
-        .filter(s => s.name)
-        .map(service => ({
-          "@type": "Offer",
-          name: service.name,
-          url: service.url || `https://${domain}/treatments/${service.name.toLowerCase().replace(/\s+/g, '-')}/`,
-          priceCurrency: "AED",
-          priceSpecification: {
-            "@type": "PriceSpecification",
-            price: service.price || "0"
-          },
-          availability: "https://schema.org/InStock"
-        }));
+    // Update services only if provided
+    const validServices = data.services.filter(s => s.name && s.name.trim());
+    if (validServices.length > 0) {
+      schema.makesOffer.itemListElement = validServices.map(service => ({
+        "@type": "Offer",
+        name: service.name,
+        url: service.url || `https://${domain}/treatments/${service.name.toLowerCase().replace(/\s+/g, '-')}/`,
+        priceCurrency: data.currency,
+        priceSpecification: {
+          "@type": "PriceSpecification",
+          price: service.price || "0"
+        },
+        availability: "https://schema.org/InStock"
+      }));
+      schema.currenciesAccepted = data.currency;
+    } else {
+      delete schema.makesOffer;
     }
     
-    // Update area served
-    if (data.areaServed) {
+    // Update area served only if provided
+    if (data.areaServed && data.areaServed.trim()) {
       schema.areaServed.name = data.areaServed;
+    } else {
+      delete schema.areaServed;
     }
     
-    // Update rating
-    if (data.ratingValue || data.reviewCount) {
+    // Update rating only if provided
+    if ((data.ratingValue && data.ratingValue.trim()) || (data.reviewCount && data.reviewCount.trim())) {
       schema.aggregateRating.ratingValue = data.ratingValue || '4.9';
       schema.aggregateRating.reviewCount = data.reviewCount || '187';
+    } else {
+      delete schema.aggregateRating;
     }
     
-    // Update opening hours
-    schema.openingHoursSpecification = data.openingHours.map(hours => ({
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: hours.days,
-      opens: hours.opens,
-      closes: hours.closes
-    }));
+    // Update opening hours only if provided
+    const validHours = data.openingHours.filter(hours => hours.days.length > 0);
+    if (validHours.length > 0) {
+      schema.openingHoursSpecification = validHours.map(hours => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: hours.days,
+        opens: hours.opens,
+        closes: hours.closes
+      }));
+    } else {
+      delete schema.openingHoursSpecification;
+    }
     
-    // Update branches
-    if (data.branches.length > 0) {
+    // Update branches only if provided
+    const validBranches = data.branches.filter(branch => branch.name && branch.name.trim());
+    if (validBranches.length > 0) {
       schema["@graph"] = [
         {
           "@type": "Organization",
@@ -337,35 +382,38 @@ const BusinessForm = () => {
           name: data.businessName || 'YOUR BRAND',
           url: data.website || `https://${domain}/`,
           logo: data.logoUrl || `https://${domain}/logo.png`,
-          sameAs: socialLinks.length > 0 ? socialLinks : [
-            "https://www.instagram.com/YOUR",
-            "https://www.linkedin.com/company/YOUR"
-          ]
+          ...(socialLinks.length > 0 && { sameAs: socialLinks })
         },
-        ...data.branches.map((branch, index) => ({
+        ...validBranches.map((branch, index) => ({
           "@type": "LocalBusiness",
-          "@id": `https://${domain}/#branch-${branch.name.toLowerCase().replace(/\s+/g, '-') || index}`,
+          "@id": `https://${domain}/#branch-${branch.name.toLowerCase().replace(/\s+/g, '-')}`,
           branchOf: {
             "@id": `https://${domain}/#org`
           },
-          name: branch.name || `${data.businessName} — Branch ${index + 1}`,
-          url: branch.url || `https://${domain}/locations/branch-${index + 1}/`,
-          telephone: branch.phone || '+971-XX-XXX-XXXX',
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: branch.street || 'ADDR',
-            addressLocality: branch.city || 'City',
-            addressRegion: branch.emirate || 'EM',
-            postalCode: branch.postalCode || '00000',
-            addressCountry: 'AE'
+          name: branch.name,
+          ...(branch.url && branch.url.trim() && { url: branch.url }),
+          ...(branch.phone && branch.phone.trim() && { telephone: `${data.phoneCode}-${branch.phone}` }),
+          ...(branch.street || branch.city || branch.emirate || branch.postalCode) && {
+            address: {
+              "@type": "PostalAddress",
+              ...(branch.street && branch.street.trim() && { streetAddress: branch.street }),
+              ...(branch.city && branch.city.trim() && { addressLocality: branch.city }),
+              ...(branch.emirate && branch.emirate.trim() && { addressRegion: branch.emirate }),
+              ...(branch.postalCode && branch.postalCode.trim() && { postalCode: branch.postalCode }),
+              addressCountry: 'AE'
+            }
           },
-          geo: {
-            "@type": "GeoCoordinates",
-            latitude: branch.latitude ? parseFloat(branch.latitude) : 'LAT',
-            longitude: branch.longitude ? parseFloat(branch.longitude) : 'LNG'
+          ...(branch.latitude && branch.longitude) && {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: parseFloat(branch.latitude),
+              longitude: parseFloat(branch.longitude)
+            }
           }
         }))
       ];
+    } else {
+      delete schema["@graph"];
     }
     
     return schema;
@@ -495,27 +543,47 @@ const BusinessForm = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={data.phone}
-                      onChange={(e) => updateField('phone', e.target.value)}
-                      placeholder="+971-XX-XXX-XXXX"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={data.email}
-                      onChange={(e) => updateField('email', e.target.value)}
-                      placeholder="info@your-domain.com"
-                    />
-                  </div>
-                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
+                     <Label htmlFor="phone">Phone Number</Label>
+                     <div className="flex gap-2">
+                       <Select value={data.phoneCode} onValueChange={(value) => updateField('phoneCode', value)}>
+                         <SelectTrigger className="w-24">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="+971">+971</SelectItem>
+                           <SelectItem value="+1">+1</SelectItem>
+                           <SelectItem value="+44">+44</SelectItem>
+                           <SelectItem value="+91">+91</SelectItem>
+                           <SelectItem value="+49">+49</SelectItem>
+                           <SelectItem value="+33">+33</SelectItem>
+                           <SelectItem value="+86">+86</SelectItem>
+                           <SelectItem value="+81">+81</SelectItem>
+                           <SelectItem value="+82">+82</SelectItem>
+                           <SelectItem value="+65">+65</SelectItem>
+                         </SelectContent>
+                       </Select>
+                       <Input
+                         id="phone"
+                         className="flex-1"
+                         value={data.phone}
+                         onChange={(e) => updateField('phone', e.target.value)}
+                         placeholder="XX-XXX-XXXX"
+                       />
+                     </div>
+                   </div>
+                   <div>
+                     <Label htmlFor="email">Email</Label>
+                     <Input
+                       id="email"
+                       type="email"
+                       value={data.email}
+                       onChange={(e) => updateField('email', e.target.value)}
+                       placeholder="info@your-domain.com"
+                     />
+                   </div>
+                 </div>
               </CardContent>
             </Card>
             
@@ -731,14 +799,34 @@ const BusinessForm = () => {
                             placeholder="Service name"
                           />
                         </div>
-                        <div>
-                          <Label>Price (AED)</Label>
-                          <Input
-                            value={service.price}
-                            onChange={(e) => updateService(index, 'price', e.target.value)}
-                            placeholder="900"
-                          />
-                        </div>
+                       <div>
+                         <Label>Price ({data.currency})</Label>
+                         <div className="flex gap-2">
+                           <Select value={data.currency} onValueChange={(value) => updateField('currency', value)}>
+                             <SelectTrigger className="w-20">
+                               <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="AED">AED</SelectItem>
+                               <SelectItem value="USD">USD</SelectItem>
+                               <SelectItem value="EUR">EUR</SelectItem>
+                               <SelectItem value="GBP">GBP</SelectItem>
+                               <SelectItem value="SAR">SAR</SelectItem>
+                               <SelectItem value="QAR">QAR</SelectItem>
+                               <SelectItem value="KWD">KWD</SelectItem>
+                               <SelectItem value="BHD">BHD</SelectItem>
+                               <SelectItem value="OMR">OMR</SelectItem>
+                               <SelectItem value="INR">INR</SelectItem>
+                             </SelectContent>
+                           </Select>
+                           <Input
+                             className="flex-1"
+                             value={service.price}
+                             onChange={(e) => updateService(index, 'price', e.target.value)}
+                             placeholder="900"
+                           />
+                         </div>
+                       </div>
                         <div className="flex items-end">
                           <Button
                             variant="outline"
