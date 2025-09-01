@@ -10,7 +10,6 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import schemaTemplate from '@/data/schema-template.json';
 
 interface BusinessData {
   businessTypes: string[];
@@ -84,6 +83,72 @@ const BusinessForm = () => {
     'Gym',
     'FitnessCenter'
   ];
+
+  const phoneCountryCodes = [
+    { code: '+971', country: 'UAE', label: '+971 (UAE)' },
+    { code: '+1', country: 'US', label: '+1 (US/Canada)' },
+    { code: '+44', country: 'GB', label: '+44 (UK)' },
+    { code: '+91', country: 'IN', label: '+91 (India)' },
+    { code: '+49', country: 'DE', label: '+49 (Germany)' },
+    { code: '+33', country: 'FR', label: '+33 (France)' },
+    { code: '+86', country: 'CN', label: '+86 (China)' },
+    { code: '+81', country: 'JP', label: '+81 (Japan)' },
+    { code: '+82', country: 'KR', label: '+82 (South Korea)' },
+    { code: '+65', country: 'SG', label: '+65 (Singapore)' },
+    { code: '+966', country: 'SA', label: '+966 (Saudi Arabia)' },
+    { code: '+974', country: 'QA', label: '+974 (Qatar)' },
+    { code: '+965', country: 'KW', label: '+965 (Kuwait)' },
+    { code: '+973', country: 'BH', label: '+973 (Bahrain)' },
+    { code: '+968', country: 'OM', label: '+968 (Oman)' },
+    { code: '+20', country: 'EG', label: '+20 (Egypt)' },
+    { code: '+961', country: 'LB', label: '+961 (Lebanon)' },
+    { code: '+962', country: 'JO', label: '+962 (Jordan)' },
+    { code: '+41', country: 'CH', label: '+41 (Switzerland)' },
+    { code: '+31', country: 'NL', label: '+31 (Netherlands)' },
+    { code: '+46', country: 'SE', label: '+46 (Sweden)' },
+    { code: '+47', country: 'NO', label: '+47 (Norway)' },
+    { code: '+45', country: 'DK', label: '+45 (Denmark)' },
+    { code: '+61', country: 'AU', label: '+61 (Australia)' },
+    { code: '+64', country: 'NZ', label: '+64 (New Zealand)' },
+    { code: '+27', country: 'ZA', label: '+27 (South Africa)' },
+    { code: '+55', country: 'BR', label: '+55 (Brazil)' },
+    { code: '+52', country: 'MX', label: '+52 (Mexico)' },
+    { code: '+7', country: 'RU', label: '+7 (Russia)' },
+    { code: '+90', country: 'TR', label: '+90 (Turkey)' }
+  ];
+
+  const countries = [
+    { code: 'AE', name: 'United Arab Emirates' },
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'IN', name: 'India' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'CN', name: 'China' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'KR', name: 'South Korea' },
+    { code: 'SG', name: 'Singapore' },
+    { code: 'SA', name: 'Saudi Arabia' },
+    { code: 'QA', name: 'Qatar' },
+    { code: 'KW', name: 'Kuwait' },
+    { code: 'BH', name: 'Bahrain' },
+    { code: 'OM', name: 'Oman' },
+    { code: 'EG', name: 'Egypt' },
+    { code: 'LB', name: 'Lebanon' },
+    { code: 'JO', name: 'Jordan' },
+    { code: 'CH', name: 'Switzerland' },
+    { code: 'NL', name: 'Netherlands' },
+    { code: 'SE', name: 'Sweden' },
+    { code: 'NO', name: 'Norway' },
+    { code: 'DK', name: 'Denmark' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'NZ', name: 'New Zealand' },
+    { code: 'ZA', name: 'South Africa' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'RU', name: 'Russia' },
+    { code: 'TR', name: 'Turkey' }
+  ];
   
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: Building2 },
@@ -106,7 +171,7 @@ const BusinessForm = () => {
     city: '',
     emirate: '',
     postalCode: '',
-    country: 'AE',
+    country: '',
     latitude: '',
     longitude: '',
     areaServed: '',
@@ -707,20 +772,15 @@ const BusinessForm = () => {
                      <Label htmlFor="phone">Phone Number</Label>
                      <div className="flex gap-2">
                        <Select value={data.phoneCode} onValueChange={(value) => updateField('phoneCode', value)}>
-                         <SelectTrigger className="w-24">
+                         <SelectTrigger className="w-32">
                            <SelectValue />
                          </SelectTrigger>
                          <SelectContent>
-                           <SelectItem value="+971">+971</SelectItem>
-                           <SelectItem value="+1">+1</SelectItem>
-                           <SelectItem value="+44">+44</SelectItem>
-                           <SelectItem value="+91">+91</SelectItem>
-                           <SelectItem value="+49">+49</SelectItem>
-                           <SelectItem value="+33">+33</SelectItem>
-                           <SelectItem value="+86">+86</SelectItem>
-                           <SelectItem value="+81">+81</SelectItem>
-                           <SelectItem value="+82">+82</SelectItem>
-                           <SelectItem value="+65">+65</SelectItem>
+                           {phoneCountryCodes.map((country) => (
+                             <SelectItem key={country.code} value={country.code}>
+                               {country.label}
+                             </SelectItem>
+                           ))}
                          </SelectContent>
                        </Select>
                        <Input
@@ -814,6 +874,22 @@ const BusinessForm = () => {
                       placeholder="00000"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="country">Country</Label>
+                  <Select value={data.country} onValueChange={(value) => updateField('country', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
