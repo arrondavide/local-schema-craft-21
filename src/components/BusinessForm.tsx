@@ -283,11 +283,11 @@ const BusinessForm = () => {
   const getSectionCompleteness = (tabId: string) => {
     switch (tabId) {
       case 'basic':
-        return data.businessName && data.website && data.businessTypes.length > 0;
+        return data.businessName && data.website && data.businessTypes && data.businessTypes.length > 0;
       case 'location':
         return data.street && data.city;
       case 'hours':
-        return data.openingHours.length > 0;
+        return data.openingHours && data.openingHours.length > 0;
       case 'social':
         return data.instagram || data.facebook || data.tiktok || data.linkedin;
       case 'branches':
