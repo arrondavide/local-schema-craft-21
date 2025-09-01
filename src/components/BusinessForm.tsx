@@ -252,67 +252,75 @@ const BusinessForm = () => {
   };
 
   const generateSchema = () => {
-    let schema = JSON.parse(JSON.stringify(schemaTemplate));
-    
-    // Helper function to set property only if value exists
-    const setIfExists = (obj: any, key: string, value: any, fallback?: any) => {
-      if (value && value.trim && value.trim() !== '') {
-        obj[key] = value;
-      } else if (fallback !== undefined) {
-        obj[key] = fallback;
-      }
+    // Start with core schema structure
+    let schema: any = {
+      "@context": "https://schema.org",
+      "@type": ["MedicalClinic", "HealthAndBeautyBusiness"]
     };
 
-    // Replace basic placeholders only if data exists
-    const domain = data.website ? data.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : 'YOUR-DOMAIN';
+    // Get domain from website if provided
+    const domain = data.website ? data.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
     
-    setIfExists(schema, '@id', data.website ? `https://${domain}/#clinic` : undefined, `https://YOUR-DOMAIN/#clinic`);
-    setIfExists(schema, 'name', data.businessName, 'YOUR CLINIC NAME');
-    setIfExists(schema, 'url', data.website, 'https://YOUR-DOMAIN/');
-    setIfExists(schema, 'telephone', data.phone ? `${data.phoneCode}-${data.phone}` : undefined, '+971-XX-XXX-XXXX');
-    setIfExists(schema, 'email', data.email, 'INFO@YOUR-DOMAIN');
-    
-    // Only add legalName if provided
-    if (data.legalName && data.legalName.trim()) {
-      schema.legalName = data.legalName;
-    } else {
-      delete schema.legalName;
+    // Only add fields that have actual user input
+    if (domain) {
+      schema["@id"] = `https://${domain}/#clinic`;
+      schema.url = data.website;
     }
     
-    // Update images only if provided
+    if (data.businessName && data.businessName.trim()) {
+      schema.name = data.businessName;
+    }
+    
+    if (data.legalName && data.legalName.trim()) {
+      schema.legalName = data.legalName;
+    }
+    
+    if (data.phone && data.phone.trim()) {
+      schema.telephone = `${data.phoneCode}${data.phone}`;
+    }
+    
+    if (data.email && data.email.trim()) {
+      schema.email = data.email;
+    }
+    
+    // Images - only add if provided
     const images = [];
     if (data.heroImageUrl && data.heroImageUrl.trim()) images.push(data.heroImageUrl);
     if (data.logoUrl && data.logoUrl.trim()) images.push(data.logoUrl);
     
     if (images.length > 0) {
       schema.image = images;
-      schema.logo = data.logoUrl || images[0];
-    } else {
-      schema.image = [`https://${domain}/path/hero.jpg`, `https://${domain}/path/logo.png`];
-      schema.logo = `https://${domain}/path/logo.png`;
+      if (data.logoUrl && data.logoUrl.trim()) {
+        schema.logo = data.logoUrl;
+      }
     }
     
-    // Update address only if some fields are provided
-    const hasAddressData = data.street || data.city || data.emirate || data.postalCode;
-    if (hasAddressData) {
-      setIfExists(schema.address, 'streetAddress', data.street, 'STREET, BUILDING, UNIT');
-      setIfExists(schema.address, 'addressLocality', data.city, 'CITY');
-      setIfExists(schema.address, 'addressRegion', data.emirate, 'EMIRATE/REGION');
-      setIfExists(schema.address, 'postalCode', data.postalCode, 'POSTCODE');
-      schema.address.addressCountry = data.country;
+    // Address - only add if some fields are provided
+    const addressData: any = {};
+    if (data.street && data.street.trim()) addressData.streetAddress = data.street;
+    if (data.city && data.city.trim()) addressData.addressLocality = data.city;
+    if (data.emirate && data.emirate.trim()) addressData.addressRegion = data.emirate;
+    if (data.postalCode && data.postalCode.trim()) addressData.postalCode = data.postalCode;
+    if (data.country && data.country.trim()) addressData.addressCountry = data.country;
+    
+    if (Object.keys(addressData).length > 0) {
+      schema.address = {
+        "@type": "PostalAddress",
+        ...addressData
+      };
     }
     
-    // Update geo coordinates only if both are provided
-    if (data.latitude && data.longitude) {
-      schema.geo.latitude = parseFloat(data.latitude);
-      schema.geo.longitude = parseFloat(data.longitude);
+    // Geo coordinates - only if both provided
+    if (data.latitude && data.longitude && data.latitude.trim() && data.longitude.trim()) {
+      schema.geo = {
+        "@type": "GeoCoordinates",
+        latitude: parseFloat(data.latitude),
+        longitude: parseFloat(data.longitude)
+      };
       schema.hasMap = `https://maps.google.com/?q=${data.latitude},${data.longitude}`;
-    } else {
-      delete schema.geo;
-      delete schema.hasMap;
     }
     
-    // Update social links only if provided
+    // Social links - only if provided
     const socialLinks = [];
     if (data.instagram && data.instagram.trim()) socialLinks.push(`https://www.instagram.com/${data.instagram}`);
     if (data.facebook && data.facebook.trim()) socialLinks.push(`https://www.facebook.com/${data.facebook}`);
@@ -321,45 +329,72 @@ const BusinessForm = () => {
     
     if (socialLinks.length > 0) {
       schema.sameAs = socialLinks;
-    } else {
-      delete schema.sameAs;
     }
     
-    // Update services only if provided
+    // Services - only if provided
     const validServices = data.services.filter(s => s.name && s.name.trim());
     if (validServices.length > 0) {
-      schema.makesOffer.itemListElement = validServices.map(service => ({
-        "@type": "Offer",
-        name: service.name,
-        url: service.url || `https://${domain}/treatments/${service.name.toLowerCase().replace(/\s+/g, '-')}/`,
-        priceCurrency: data.currency,
-        priceSpecification: {
-          "@type": "PriceSpecification",
-          price: service.price || "0"
-        },
-        availability: "https://schema.org/InStock"
-      }));
-      schema.currenciesAccepted = data.currency;
-    } else {
-      delete schema.makesOffer;
+      const offers = validServices.map(service => {
+        const offer: any = {
+          "@type": "Offer",
+          name: service.name,
+          availability: "https://schema.org/InStock"
+        };
+        
+        if (service.url && service.url.trim()) {
+          offer.url = service.url;
+        } else if (domain) {
+          offer.url = `https://${domain}/treatments/${service.name.toLowerCase().replace(/\s+/g, '-')}/`;
+        }
+        
+        if (service.price && service.price.trim()) {
+          offer.priceCurrency = data.currency;
+          offer.priceSpecification = {
+            "@type": "PriceSpecification",
+            price: service.price
+          };
+        }
+        
+        return offer;
+      });
+      
+      schema.makesOffer = {
+        "@type": "OfferCatalog",
+        name: "Clinic Services",
+        itemListElement: offers
+      };
+      
+      if (data.currency && data.currency.trim()) {
+        schema.currenciesAccepted = data.currency;
+      }
     }
     
-    // Update area served only if provided
+    // Area served - only if provided
     if (data.areaServed && data.areaServed.trim()) {
-      schema.areaServed.name = data.areaServed;
-    } else {
-      delete schema.areaServed;
+      schema.areaServed = {
+        "@type": "City",
+        name: data.areaServed
+      };
     }
     
-    // Update rating only if provided
+    // Rating - only if either value is provided
     if ((data.ratingValue && data.ratingValue.trim()) || (data.reviewCount && data.reviewCount.trim())) {
-      schema.aggregateRating.ratingValue = data.ratingValue || '4.9';
-      schema.aggregateRating.reviewCount = data.reviewCount || '187';
-    } else {
-      delete schema.aggregateRating;
+      const rating: any = {
+        "@type": "AggregateRating"
+      };
+      
+      if (data.ratingValue && data.ratingValue.trim()) {
+        rating.ratingValue = data.ratingValue;
+      }
+      
+      if (data.reviewCount && data.reviewCount.trim()) {
+        rating.reviewCount = data.reviewCount;
+      }
+      
+      schema.aggregateRating = rating;
     }
     
-    // Update opening hours only if provided
+    // Opening hours - only if provided
     const validHours = data.openingHours.filter(hours => hours.days.length > 0);
     if (validHours.length > 0) {
       schema.openingHoursSpecification = validHours.map(hours => ({
@@ -368,52 +403,67 @@ const BusinessForm = () => {
         opens: hours.opens,
         closes: hours.closes
       }));
-    } else {
-      delete schema.openingHoursSpecification;
     }
     
-    // Update branches only if provided
+    // Services knowledge - dynamically build from services list
+    if (validServices.length > 0) {
+      schema.knowsAbout = validServices.map(service => service.name.toLowerCase());
+    }
+    
+    // Branches - only if provided
     const validBranches = data.branches.filter(branch => branch.name && branch.name.trim());
-    if (validBranches.length > 0) {
-      schema["@graph"] = [
-        {
-          "@type": "Organization",
-          "@id": `https://${domain}/#org`,
-          name: data.businessName || 'YOUR BRAND',
-          url: data.website || `https://${domain}/`,
-          logo: data.logoUrl || `https://${domain}/logo.png`,
-          ...(socialLinks.length > 0 && { sameAs: socialLinks })
-        },
-        ...validBranches.map((branch, index) => ({
+    if (validBranches.length > 0 && domain && data.businessName) {
+      const orgData: any = {
+        "@type": "Organization",
+        "@id": `https://${domain}/#org`,
+        name: data.businessName
+      };
+      
+      if (data.website) orgData.url = data.website;
+      if (data.logoUrl && data.logoUrl.trim()) orgData.logo = data.logoUrl;
+      if (socialLinks.length > 0) orgData.sameAs = socialLinks;
+      
+      const branchesData = validBranches.map((branch) => {
+        const branchData: any = {
           "@type": "LocalBusiness",
           "@id": `https://${domain}/#branch-${branch.name.toLowerCase().replace(/\s+/g, '-')}`,
           branchOf: {
             "@id": `https://${domain}/#org`
           },
-          name: branch.name,
-          ...(branch.url && branch.url.trim() && { url: branch.url }),
-          ...(branch.phone && branch.phone.trim() && { telephone: `${data.phoneCode}-${branch.phone}` }),
-          ...(branch.street || branch.city || branch.emirate || branch.postalCode) && {
-            address: {
-              "@type": "PostalAddress",
-              ...(branch.street && branch.street.trim() && { streetAddress: branch.street }),
-              ...(branch.city && branch.city.trim() && { addressLocality: branch.city }),
-              ...(branch.emirate && branch.emirate.trim() && { addressRegion: branch.emirate }),
-              ...(branch.postalCode && branch.postalCode.trim() && { postalCode: branch.postalCode }),
-              addressCountry: 'AE'
-            }
-          },
-          ...(branch.latitude && branch.longitude) && {
-            geo: {
-              "@type": "GeoCoordinates",
-              latitude: parseFloat(branch.latitude),
-              longitude: parseFloat(branch.longitude)
-            }
-          }
-        }))
-      ];
-    } else {
-      delete schema["@graph"];
+          name: branch.name
+        };
+        
+        if (branch.url && branch.url.trim()) branchData.url = branch.url;
+        if (branch.phone && branch.phone.trim()) branchData.telephone = `${data.phoneCode}${branch.phone}`;
+        
+        // Branch address
+        const branchAddress: any = {};
+        if (branch.street && branch.street.trim()) branchAddress.streetAddress = branch.street;
+        if (branch.city && branch.city.trim()) branchAddress.addressLocality = branch.city;
+        if (branch.emirate && branch.emirate.trim()) branchAddress.addressRegion = branch.emirate;
+        if (branch.postalCode && branch.postalCode.trim()) branchAddress.postalCode = branch.postalCode;
+        if (data.country) branchAddress.addressCountry = data.country;
+        
+        if (Object.keys(branchAddress).length > 0) {
+          branchData.address = {
+            "@type": "PostalAddress",
+            ...branchAddress
+          };
+        }
+        
+        // Branch geo coordinates
+        if (branch.latitude && branch.longitude && branch.latitude.trim() && branch.longitude.trim()) {
+          branchData.geo = {
+            "@type": "GeoCoordinates",
+            latitude: parseFloat(branch.latitude),
+            longitude: parseFloat(branch.longitude)
+          };
+        }
+        
+        return branchData;
+      });
+      
+      schema["@graph"] = [orgData, ...branchesData];
     }
     
     return schema;
