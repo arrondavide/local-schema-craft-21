@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import schemaTemplate from '@/data/schema-template.json';
 
 interface BusinessData {
+  businessTypes: string[];
   businessName: string;
   legalName: string;
   website: string;
@@ -62,6 +63,27 @@ interface BusinessData {
 const BusinessForm = () => {
   const { toast } = useToast();
   const [currentTab, setCurrentTab] = useState('basic');
+  const [newBusinessType, setNewBusinessType] = useState('');
+  
+  const commonBusinessTypes = [
+    'MedicalClinic',
+    'HealthAndBeautyBusiness', 
+    'DentalClinic',
+    'DermatologyClinic',
+    'CosmeticSurgery',
+    'Spa',
+    'BeautySalon',
+    'MedicalSpa',
+    'WellnessCenter',
+    'HealthcareOrganization',
+    'LocalBusiness',
+    'ProfessionalService',
+    'Store',
+    'Restaurant',
+    'Hotel',
+    'Gym',
+    'FitnessCenter'
+  ];
   
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: Building2 },
@@ -71,6 +93,7 @@ const BusinessForm = () => {
     { id: 'branches', label: 'Branches', icon: Star }
   ];
   const [data, setData] = useState<BusinessData>({
+    businessTypes: ['MedicalClinic', 'HealthAndBeautyBusiness'],
     businessName: '',
     legalName: '',
     website: '',
@@ -120,6 +143,29 @@ const BusinessForm = () => {
 
   const updateField = (field: keyof BusinessData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addBusinessType = (type: string) => {
+    if (type && type.trim() && !data.businessTypes.includes(type.trim())) {
+      setData(prev => ({
+        ...prev,
+        businessTypes: [...prev.businessTypes, type.trim()]
+      }));
+    }
+  };
+
+  const removeBusinessType = (type: string) => {
+    setData(prev => ({
+      ...prev,
+      businessTypes: prev.businessTypes.filter(t => t !== type)
+    }));
+  };
+
+  const addCustomBusinessType = () => {
+    if (newBusinessType.trim()) {
+      addBusinessType(newBusinessType);
+      setNewBusinessType('');
+    }
   };
 
   const addService = () => {
@@ -237,7 +283,7 @@ const BusinessForm = () => {
   const getSectionCompleteness = (tabId: string) => {
     switch (tabId) {
       case 'basic':
-        return data.businessName && data.website;
+        return data.businessName && data.website && data.businessTypes.length > 0;
       case 'location':
         return data.street && data.city;
       case 'hours':
@@ -254,9 +300,13 @@ const BusinessForm = () => {
   const generateSchema = () => {
     // Start with core schema structure
     let schema: any = {
-      "@context": "https://schema.org",
-      "@type": ["MedicalClinic", "HealthAndBeautyBusiness"]
+      "@context": "https://schema.org"
     };
+
+    // Add business types - only if provided
+    if (data.businessTypes && data.businessTypes.length > 0) {
+      schema["@type"] = data.businessTypes.length === 1 ? data.businessTypes[0] : data.businessTypes;
+    }
 
     // Get domain from website if provided
     const domain = data.website ? data.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
@@ -541,6 +591,65 @@ const BusinessForm = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Business Types *</Label>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border rounded-md bg-muted/30">
+                      {data.businessTypes.length > 0 ? (
+                        data.businessTypes.map((type) => (
+                          <Badge key={type} variant="secondary" className="flex items-center gap-1">
+                            {type}
+                            <button
+                              onClick={() => removeBusinessType(type)}
+                              className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No business types selected</span>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Select onValueChange={addBusinessType}>
+                        <SelectTrigger className="bg-background border-input">
+                          <SelectValue placeholder="Select a business type" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border border-border shadow-lg z-50">
+                          {commonBusinessTypes
+                            .filter(type => !data.businessTypes.includes(type))
+                            .map((type) => (
+                              <SelectItem key={type} value={type} className="hover:bg-accent">
+                                {type}
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add custom business type"
+                          value={newBusinessType}
+                          onChange={(e) => setNewBusinessType(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addCustomBusinessType()}
+                          className="flex-1"
+                        />
+                        <Button 
+                          type="button" 
+                          onClick={addCustomBusinessType}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="businessName">Business Name *</Label>
