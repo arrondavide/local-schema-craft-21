@@ -175,7 +175,7 @@ const BusinessForm = () => {
     country: '',
     latitude: '',
     longitude: '',
-    googlePlacesApiKey: localStorage.getItem('googlePlacesApiKey') || '',
+    googlePlacesApiKey: localStorage.getItem('googlePlacesApiKey') || 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ',
     ratingValue: '4.9',
     reviewCount: '187',
     instagram: '',
