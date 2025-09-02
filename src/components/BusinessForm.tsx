@@ -213,7 +213,91 @@ const BusinessForm = () => {
     { code: 'QA', name: 'Qatar' },
     { code: 'KW', name: 'Kuwait' },
     { code: 'BH', name: 'Bahrain' },
-    { code: 'OM', name: 'Oman' }
+    { code: 'OM', name: 'Oman' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'SG', name: 'Singapore' },
+    { code: 'MY', name: 'Malaysia' },
+    { code: 'TH', name: 'Thailand' },
+    { code: 'PH', name: 'Philippines' },
+    { code: 'ID', name: 'Indonesia' },
+    { code: 'VN', name: 'Vietnam' },
+    { code: 'KR', name: 'South Korea' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'CN', name: 'China' },
+    { code: 'HK', name: 'Hong Kong' },
+    { code: 'TW', name: 'Taiwan' },
+    { code: 'NZ', name: 'New Zealand' },
+    { code: 'ZA', name: 'South Africa' },
+    { code: 'EG', name: 'Egypt' },
+    { code: 'TR', name: 'Turkey' },
+    { code: 'IL', name: 'Israel' },
+    { code: 'JO', name: 'Jordan' },
+    { code: 'LB', name: 'Lebanon' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'AR', name: 'Argentina' },
+    { code: 'CL', name: 'Chile' },
+    { code: 'CO', name: 'Colombia' },
+    { code: 'PE', name: 'Peru' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'PT', name: 'Portugal' },
+    { code: 'NL', name: 'Netherlands' },
+    { code: 'BE', name: 'Belgium' },
+    { code: 'CH', name: 'Switzerland' },
+    { code: 'AT', name: 'Austria' },
+    { code: 'DK', name: 'Denmark' },
+    { code: 'SE', name: 'Sweden' },
+    { code: 'NO', name: 'Norway' },
+    { code: 'FI', name: 'Finland' },
+    { code: 'PL', name: 'Poland' },
+    { code: 'CZ', name: 'Czech Republic' },
+    { code: 'HU', name: 'Hungary' },
+    { code: 'RO', name: 'Romania' },
+    { code: 'BG', name: 'Bulgaria' },
+    { code: 'HR', name: 'Croatia' },
+    { code: 'SI', name: 'Slovenia' },
+    { code: 'SK', name: 'Slovakia' },
+    { code: 'EE', name: 'Estonia' },
+    { code: 'LV', name: 'Latvia' },
+    { code: 'LT', name: 'Lithuania' },
+    { code: 'IE', name: 'Ireland' },
+    { code: 'IS', name: 'Iceland' },
+    { code: 'MT', name: 'Malta' },
+    { code: 'CY', name: 'Cyprus' },
+    { code: 'LU', name: 'Luxembourg' },
+    { code: 'MC', name: 'Monaco' },
+    { code: 'AD', name: 'Andorra' },
+    { code: 'SM', name: 'San Marino' },
+    { code: 'VA', name: 'Vatican City' },
+    { code: 'LI', name: 'Liechtenstein' },
+    { code: 'RU', name: 'Russia' },
+    { code: 'UA', name: 'Ukraine' },
+    { code: 'BY', name: 'Belarus' },
+    { code: 'MD', name: 'Moldova' },
+    { code: 'GE', name: 'Georgia' },
+    { code: 'AM', name: 'Armenia' },
+    { code: 'AZ', name: 'Azerbaijan' },
+    { code: 'KZ', name: 'Kazakhstan' },
+    { code: 'UZ', name: 'Uzbekistan' },
+    { code: 'TM', name: 'Turkmenistan' },
+    { code: 'KG', name: 'Kyrgyzstan' },
+    { code: 'TJ', name: 'Tajikistan' },
+    { code: 'AF', name: 'Afghanistan' },
+    { code: 'PK', name: 'Pakistan' },
+    { code: 'BD', name: 'Bangladesh' },
+    { code: 'LK', name: 'Sri Lanka' },
+    { code: 'MV', name: 'Maldives' },
+    { code: 'BT', name: 'Bhutan' },
+    { code: 'NP', name: 'Nepal' },
+    { code: 'MM', name: 'Myanmar' },
+    { code: 'LA', name: 'Laos' },
+    { code: 'KH', name: 'Cambodia' },
+    { code: 'BN', name: 'Brunei' },
+    { code: 'TL', name: 'Timor-Leste' },
+    { code: 'MN', name: 'Mongolia' },
+    { code: 'KP', name: 'North Korea' }
   ];
   
   const tabs = [
@@ -287,8 +371,18 @@ const BusinessForm = () => {
       } else if (types.includes('administrative_area_level_1')) {
         region = component.long_name;
       } else if (types.includes('country')) {
-        const countryMatch = countries.find(c => c.name === component.long_name || c.code === component.short_name);
-        country = countryMatch ? countryMatch.code : component.short_name;
+        // Try to match by short_name first (country code), then by long_name
+        const countryByCode = countries.find(c => c.code === component.short_name);
+        const countryByName = countries.find(c => c.name.toLowerCase() === component.long_name.toLowerCase());
+        
+        if (countryByCode) {
+          country = countryByCode.code;
+        } else if (countryByName) {
+          country = countryByName.code;
+        } else {
+          // Fallback to the short_name (usually the country code)
+          country = component.short_name;
+        }
       } else if (types.includes('postal_code')) {
         postalCode = component.long_name;
       }
@@ -304,7 +398,10 @@ const BusinessForm = () => {
   };
 
   const handlePlaceSelect = (place) => {
+    console.log('Selected place:', place); // Debug log
     const { city, region, country, postalCode, latitude, longitude, areaServed } = extractAddressComponents(place);
+    
+    console.log('Extracted country:', country); // Debug log
     
     setData(prev => ({
       ...prev,
