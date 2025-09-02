@@ -26,7 +26,7 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
   onPlaceSelect,
   placeholder = "Enter address",
   label = "Address",
-  apiKey
+  apiKey = "AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ"
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
