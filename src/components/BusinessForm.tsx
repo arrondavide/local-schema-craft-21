@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check, Eye, Copy } from 'lucide-react';
 
 interface BusinessData {
   businessTypes: string[];
@@ -37,6 +37,10 @@ interface BusinessData {
   linkedin: string;
   currency: string;
   areaServed: string;
+  priceRange: string;
+  acceptsReservations: boolean;
+  paymentMethods: string[];
+  knowsAbout: string[];
   services: Array<{
     name: string;
     price: string;
@@ -60,7 +64,7 @@ interface BusinessData {
   }>;
 }
 
-// Google Places Autocomplete Component
+// Google Places Autocomplete Component (keeping the existing implementation)
 interface GooglePlacesAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -88,13 +92,11 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
 
     const loadGoogleMaps = async () => {
       try {
-        // Check if Google Maps is already loaded
         if (window.google && window.google.maps && window.google.maps.places) {
           setIsLoaded(true);
           return;
         }
 
-        // Load Google Maps API
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
         script.async = true;
@@ -105,10 +107,7 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
         };
 
         document.head.appendChild(script);
-
-        script.onerror = () => {
-          setError('Failed to load Google Maps API');
-        };
+        script.onerror = () => setError('Failed to load Google Maps API');
       } catch (err) {
         setError('Error loading Google Maps API');
       }
@@ -121,12 +120,10 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
     if (!isLoaded || !inputRef.current || !window.google) return;
 
     try {
-      // Initialize autocomplete
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: ['address']
       });
 
-      // Add place changed listener
       autocompleteRef.current.addListener('place_changed', () => {
         const place = autocompleteRef.current?.getPlace();
         if (place && place.formatted_address) {
@@ -207,6 +204,8 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
 const BusinessForm = () => {
   const [currentTab, setCurrentTab] = useState('basic');
   const [newBusinessType, setNewBusinessType] = useState('');
+  const [newKnowsAbout, setNewKnowsAbout] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
   
   const commonBusinessTypes = [
     'MedicalClinic',
@@ -228,6 +227,32 @@ const BusinessForm = () => {
     'FitnessCenter'
   ];
 
+  const commonKnowsAbout = [
+    'anti-wrinkle injections',
+    'dermal fillers',
+    'lip filler',
+    'PRP',
+    'skin booster',
+    'laser hair removal',
+    'hydrafacial',
+    'chemical peel',
+    'microneedling',
+    'botox',
+    'facial treatments',
+    'skin consultation'
+  ];
+
+  const paymentOptions = [
+    'Cash',
+    'Credit Card',
+    'Debit Card',
+    'Apple Pay',
+    'Google Pay',
+    'Bank Transfer',
+    'PayPal',
+    'Cryptocurrency'
+  ];
+
   const phoneCountryCodes = [
     { code: '+44', country: 'GB', label: '+44 (UK)' },
     { code: '+1', country: 'US', label: '+1 (US/Canada)' },
@@ -243,22 +268,7 @@ const BusinessForm = () => {
     { code: '+974', country: 'QA', label: '+974 (Qatar)' },
     { code: '+965', country: 'KW', label: '+965 (Kuwait)' },
     { code: '+973', country: 'BH', label: '+973 (Bahrain)' },
-    { code: '+968', country: 'OM', label: '+968 (Oman)' },
-    { code: '+20', country: 'EG', label: '+20 (Egypt)' },
-    { code: '+961', country: 'LB', label: '+961 (Lebanon)' },
-    { code: '+962', country: 'JO', label: '+962 (Jordan)' },
-    { code: '+41', country: 'CH', label: '+41 (Switzerland)' },
-    { code: '+31', country: 'NL', label: '+31 (Netherlands)' },
-    { code: '+46', country: 'SE', label: '+46 (Sweden)' },
-    { code: '+47', country: 'NO', label: '+47 (Norway)' },
-    { code: '+45', country: 'DK', label: '+45 (Denmark)' },
-    { code: '+61', country: 'AU', label: '+61 (Australia)' },
-    { code: '+64', country: 'NZ', label: '+64 (New Zealand)' },
-    { code: '+27', country: 'ZA', label: '+27 (South Africa)' },
-    { code: '+55', country: 'BR', label: '+55 (Brazil)' },
-    { code: '+52', country: 'MX', label: '+52 (Mexico)' },
-    { code: '+7', country: 'RU', label: '+7 (Russia)' },
-    { code: '+90', country: 'TR', label: '+90 (Turkey)' }
+    { code: '+968', country: 'OM', label: '+968 (Oman)' }
   ];
 
   const countries = [
@@ -268,30 +278,11 @@ const BusinessForm = () => {
     { code: 'IN', name: 'India' },
     { code: 'DE', name: 'Germany' },
     { code: 'FR', name: 'France' },
-    { code: 'CN', name: 'China' },
-    { code: 'JP', name: 'Japan' },
-    { code: 'KR', name: 'South Korea' },
-    { code: 'SG', name: 'Singapore' },
     { code: 'SA', name: 'Saudi Arabia' },
     { code: 'QA', name: 'Qatar' },
     { code: 'KW', name: 'Kuwait' },
     { code: 'BH', name: 'Bahrain' },
-    { code: 'OM', name: 'Oman' },
-    { code: 'EG', name: 'Egypt' },
-    { code: 'LB', name: 'Lebanon' },
-    { code: 'JO', name: 'Jordan' },
-    { code: 'CH', name: 'Switzerland' },
-    { code: 'NL', name: 'Netherlands' },
-    { code: 'SE', name: 'Sweden' },
-    { code: 'NO', name: 'Norway' },
-    { code: 'DK', name: 'Denmark' },
-    { code: 'AU', name: 'Australia' },
-    { code: 'NZ', name: 'New Zealand' },
-    { code: 'ZA', name: 'South Africa' },
-    { code: 'BR', name: 'Brazil' },
-    { code: 'MX', name: 'Mexico' },
-    { code: 'RU', name: 'Russia' },
-    { code: 'TR', name: 'Turkey' }
+    { code: 'OM', name: 'Oman' }
   ];
   
   const tabs = [
@@ -319,7 +310,7 @@ const BusinessForm = () => {
     country: '',
     latitude: '',
     longitude: '',
-    googlePlacesApiKey: 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ',
+    googlePlacesApiKey: '',
     ratingValue: '',
     reviewCount: '',
     instagram: '',
@@ -328,16 +319,14 @@ const BusinessForm = () => {
     linkedin: '',
     currency: 'GBP',
     areaServed: '',
+    priceRange: '$$',
+    acceptsReservations: true,
+    paymentMethods: ['Cash', 'Credit Card', 'Debit Card'],
+    knowsAbout: [],
     services: [],
     openingHours: [],
     branches: []
   });
-
-  // Load data from memory
-  useEffect(() => {
-    // In a real app, this would load from localStorage
-    // For this demo, we'll just use the initial state
-  }, []);
 
   const updateField = (field: keyof BusinessData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -354,7 +343,6 @@ const BusinessForm = () => {
     let latitude = '';
     let longitude = '';
 
-    // Extract address components
     components.forEach((component: any) => {
       const types = component.types;
       
@@ -370,7 +358,6 @@ const BusinessForm = () => {
       }
     });
 
-    // Extract coordinates
     if (geometry && geometry.location) {
       latitude = geometry.location.lat().toString();
       longitude = geometry.location.lng().toString();
@@ -382,7 +369,6 @@ const BusinessForm = () => {
   const handlePlaceSelect = (place: any) => {
     const { city, region, country, postalCode, latitude, longitude } = extractAddressComponents(place);
     
-    // Update all the extracted fields
     setData(prev => ({
       ...prev,
       city: city || prev.city,
@@ -415,6 +401,38 @@ const BusinessForm = () => {
       addBusinessType(newBusinessType);
       setNewBusinessType('');
     }
+  };
+
+  const addKnowsAbout = (item: string) => {
+    if (item && item.trim() && !data.knowsAbout.includes(item.trim())) {
+      setData(prev => ({
+        ...prev,
+        knowsAbout: [...prev.knowsAbout, item.trim()]
+      }));
+    }
+  };
+
+  const removeKnowsAbout = (item: string) => {
+    setData(prev => ({
+      ...prev,
+      knowsAbout: prev.knowsAbout.filter(k => k !== item)
+    }));
+  };
+
+  const addCustomKnowsAbout = () => {
+    if (newKnowsAbout.trim()) {
+      addKnowsAbout(newKnowsAbout);
+      setNewKnowsAbout('');
+    }
+  };
+
+  const togglePaymentMethod = (method: string) => {
+    setData(prev => ({
+      ...prev,
+      paymentMethods: prev.paymentMethods.includes(method)
+        ? prev.paymentMethods.filter(m => m !== method)
+        : [...prev.paymentMethods, method]
+    }));
   };
 
   const addService = () => {
@@ -540,43 +558,76 @@ const BusinessForm = () => {
       case 'social':
         return data.instagram || data.facebook || data.tiktok || data.linkedin;
       case 'branches':
-        return true; // Optional section
+        return true;
       default:
         return false;
     }
   };
 
   const generateSchema = () => {
-    // Schema generation logic (same as before but with updated field names)
     let schema: any = {
       "@context": "https://schema.org"
     };
 
-    if (data.businessTypes && data.businessTypes.length > 0) {
-      schema["@type"] = data.businessTypes.length === 1 ? data.businessTypes[0] : data.businessTypes;
+    // Validate essential data
+    const hasEssentialData = data.businessName && data.businessName.trim();
+    
+    if (!hasEssentialData) {
+      return {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Please fill in required fields",
+        "description": "Business name is required to generate a valid schema"
+      };
     }
 
+    // Business Type - fallback to LocalBusiness if none specified
+    if (data.businessTypes && data.businessTypes.length > 0) {
+      schema["@type"] = data.businessTypes.length === 1 ? data.businessTypes[0] : data.businessTypes;
+    } else {
+      schema["@type"] = "LocalBusiness";
+    }
+
+    // Basic Business Info
     const domain = data.website ? data.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
     
     if (domain) {
-      schema["@id"] = `https://${domain}/#clinic`;
+      schema["@id"] = `https://${domain}/#business`;
       schema.url = data.website;
+    } else {
+      // Generate a basic ID even without website
+      schema["@id"] = `#${data.businessName.toLowerCase().replace(/\s+/g, '-')}`;
     }
     
-    if (data.businessName && data.businessName.trim()) {
-      schema.name = data.businessName;
-    }
+    schema.name = data.businessName;
     
     if (data.legalName && data.legalName.trim()) {
       schema.legalName = data.legalName;
     }
     
     if (data.phone && data.phone.trim()) {
-      schema.telephone = `${data.phoneCode}${data.phone}`;
+      schema.telephone = `${data.phoneCode}-${data.phone}`;
     }
     
     if (data.email && data.email.trim()) {
       schema.email = data.email;
+    }
+
+    // Price and Payment
+    if (data.priceRange) {
+      schema.priceRange = data.priceRange;
+    }
+    
+    if (data.currency) {
+      schema.currenciesAccepted = data.currency;
+    }
+    
+    if (data.paymentMethods && data.paymentMethods.length > 0) {
+      schema.paymentAccepted = data.paymentMethods.join(', ');
+    }
+    
+    if (data.acceptsReservations !== undefined) {
+      schema.acceptsReservations = data.acceptsReservations.toString();
     }
     
     // Images
@@ -591,22 +642,190 @@ const BusinessForm = () => {
       }
     }
     
-    // Address
-    const addressData: any = {};
-    if (data.street && data.street.trim()) addressData.streetAddress = data.street;
-    if (data.city && data.city.trim()) addressData.addressLocality = data.city;
-    if (data.region && data.region.trim()) addressData.addressRegion = data.region;
-    if (data.postalCode && data.postalCode.trim()) addressData.postalCode = data.postalCode;
-    if (data.country && data.country.trim()) addressData.addressCountry = data.country;
+    // Address - only include if we have at least street OR city
+    const hasAddressData = (data.street && data.street.trim()) || (data.city && data.city.trim());
+    if (hasAddressData) {
+      const addressData: any = {
+        "@type": "PostalAddress"
+      };
+      
+      if (data.street && data.street.trim()) addressData.streetAddress = data.street;
+      if (data.city && data.city.trim()) addressData.addressLocality = data.city;
+      if (data.region && data.region.trim()) addressData.addressRegion = data.region;
+      if (data.postalCode && data.postalCode.trim()) addressData.postalCode = data.postalCode;
+      if (data.country && data.country.trim()) addressData.addressCountry = data.country;
+      
+      schema.address = addressData;
+    }
     
-    if (Object.keys(addressData).length > 0) {
-      schema.address = {
-        "@type": "PostalAddress",
-        ...addressData
+    // Geo coordinates - only include if we have BOTH latitude AND longitude
+    if (data.latitude && data.longitude && !isNaN(parseFloat(data.latitude)) && !isNaN(parseFloat(data.longitude))) {
+      schema.geo = {
+        "@type": "GeoCoordinates",
+        latitude: parseFloat(data.latitude),
+        longitude: parseFloat(data.longitude)
+      };
+      
+      schema.hasMap = `https://maps.google.com/?q=${data.latitude},${data.longitude}`;
+    }
+    
+    // Opening Hours - only include if we have at least one complete schedule
+    const validOpeningHours = data.openingHours?.filter(hours => 
+      hours.days && hours.days.length > 0 && hours.opens && hours.closes
+    );
+    
+    if (validOpeningHours && validOpeningHours.length > 0) {
+      schema.openingHoursSpecification = validOpeningHours.map(hours => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: hours.days,
+        opens: hours.opens,
+        closes: hours.closes
+      }));
+    }
+    
+    // Social Links - only include if we have at least one
+    const socialLinks = [];
+    if (data.instagram && data.instagram.trim()) socialLinks.push(`https://www.instagram.com/${data.instagram}`);
+    if (data.facebook && data.facebook.trim()) socialLinks.push(`https://www.facebook.com/${data.facebook}`);
+    if (data.tiktok && data.tiktok.trim()) socialLinks.push(`https://www.tiktok.com/@${data.tiktok}`);
+    if (data.linkedin && data.linkedin.trim()) socialLinks.push(`https://www.linkedin.com/company/${data.linkedin}`);
+    
+    if (socialLinks.length > 0) {
+      schema.sameAs = socialLinks;
+    }
+    
+    // Services and Expertise - only include if not empty
+    if (data.knowsAbout && data.knowsAbout.length > 0) {
+      schema.knowsAbout = data.knowsAbout;
+    }
+    
+    // Services/Offers - only include services with both name and price
+    const validServices = data.services?.filter(service => 
+      service.name && service.name.trim() && service.price && service.price.trim()
+    );
+    
+    if (validServices && validServices.length > 0) {
+      schema.makesOffer = {
+        "@type": "OfferCatalog",
+        name: `${data.businessName} Services`,
+        itemListElement: validServices.map(service => ({
+          "@type": "Offer",
+          name: service.name,
+          url: service.url || schema.url || `#${service.name.toLowerCase().replace(/\s+/g, '-')}`,
+          priceCurrency: data.currency || 'USD',
+          priceSpecification: {
+            "@type": "PriceSpecification",
+            price: service.price
+          },
+          availability: "https://schema.org/InStock"
+        }))
       };
     }
     
-    // Rest of schema generation...
+    // Area Served - only if specified
+    if (data.areaServed && data.areaServed.trim()) {
+      schema.areaServed = {
+        "@type": "City",
+        name: data.areaServed
+      };
+    }
+    
+    // Booking Action - only if we have a website
+    if (schema.url) {
+      schema.potentialAction = {
+        "@type": "ReserveAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${schema.url}/book/`,
+          inLanguage: "en"
+        }
+      };
+    }
+    
+    // Rating - only include if we have BOTH rating and review count
+    if (data.ratingValue && data.reviewCount && 
+        !isNaN(parseFloat(data.ratingValue)) && !isNaN(parseInt(data.reviewCount))) {
+      const rating = parseFloat(data.ratingValue);
+      const reviews = parseInt(data.reviewCount);
+      
+      if (rating >= 0 && rating <= 5 && reviews > 0) {
+        schema.aggregateRating = {
+          "@type": "AggregateRating",
+          ratingValue: data.ratingValue,
+          reviewCount: data.reviewCount
+        };
+      }
+    }
+    
+    // Branches - only include if we have valid branch data AND main business has sufficient data
+    const validBranches = data.branches?.filter(branch => 
+      branch.name && branch.name.trim() && 
+      branch.city && branch.city.trim()
+    );
+    
+    if (validBranches && validBranches.length > 0 && schema.url) {
+      const orgData = {
+        "@type": "Organization",
+        "@id": `${schema.url}/#org`,
+        name: data.businessName,
+        url: schema.url
+      };
+      
+      if (schema.logo) {
+        orgData.logo = schema.logo;
+      }
+      
+      if (socialLinks.length > 0) {
+        orgData.sameAs = socialLinks;
+      }
+      
+      const branchData = validBranches.map((branch, index) => {
+        const branchSchema: any = {
+          "@type": "LocalBusiness",
+          "@id": `${schema.url}/#branch-${branch.name.toLowerCase().replace(/\s+/g, '-')}`,
+          branchOf: {
+            "@id": `${schema.url}/#org`
+          },
+          name: `${data.businessName} - ${branch.name}`,
+          url: branch.url || schema.url
+        };
+        
+        if (branch.phone && branch.phone.trim()) {
+          branchSchema.telephone = branch.phone;
+        }
+        
+        // Branch Address - only include if we have meaningful address data
+        const hasBranchAddress = branch.street?.trim() || branch.city?.trim();
+        if (hasBranchAddress) {
+          const branchAddress: any = {
+            "@type": "PostalAddress"
+          };
+          
+          if (branch.street?.trim()) branchAddress.streetAddress = branch.street;
+          if (branch.city?.trim()) branchAddress.addressLocality = branch.city;
+          if (branch.region?.trim()) branchAddress.addressRegion = branch.region;
+          if (branch.postalCode?.trim()) branchAddress.postalCode = branch.postalCode;
+          if (data.country?.trim()) branchAddress.addressCountry = data.country;
+          
+          branchSchema.address = branchAddress;
+        }
+        
+        // Branch Coordinates - only include if we have both values and they're valid numbers
+        if (branch.latitude && branch.longitude && 
+            !isNaN(parseFloat(branch.latitude)) && !isNaN(parseFloat(branch.longitude))) {
+          branchSchema.geo = {
+            "@type": "GeoCoordinates",
+            latitude: parseFloat(branch.latitude),
+            longitude: parseFloat(branch.longitude)
+          };
+        }
+        
+        return branchSchema;
+      });
+      
+      schema["@graph"] = [orgData, ...branchData];
+    }
+    
     return schema;
   };
 
@@ -618,22 +837,27 @@ const BusinessForm = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'local-schema.json';
+    a.download = 'local-business-schema.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
+  const copySchema = () => {
+    const schema = generateSchema();
+    navigator.clipboard.writeText(JSON.stringify(schema, null, 2));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-4xl">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-6xl">
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            AHM SEO Schema Generator
+            Business Schema Generator
           </h1>
           <p className="text-gray-600 text-base sm:text-lg">
-            Generate structured JSON-LD schemas for your business
+            Generate comprehensive JSON-LD schemas for enhanced SEO
           </p>
         </div>
 
@@ -645,6 +869,40 @@ const BusinessForm = () => {
           </div>
           <Progress value={getProgress()} className="h-2" />
         </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center gap-4 mb-6">
+          <Button
+            onClick={() => setShowPreview(!showPreview)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            {showPreview ? 'Hide Preview' : 'Preview Schema'}
+          </Button>
+          <Button
+            onClick={copySchema}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Copy className="w-4 h-4" />
+            Copy Schema
+          </Button>
+        </div>
+
+        {/* Schema Preview */}
+        {showPreview && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Schema Preview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-auto max-h-96">
+                {JSON.stringify(generateSchema(), null, 2)}
+              </pre>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 w-full gap-1">
@@ -676,7 +934,7 @@ const BusinessForm = () => {
                   Business Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Business Types *</Label>
                   <div className="space-y-3">
@@ -726,6 +984,65 @@ const BusinessForm = () => {
                         <Button 
                           type="button" 
                           onClick={addCustomBusinessType}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Services & Expertise</Label>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border rounded-md bg-gray-50">
+                      {data.knowsAbout.length > 0 ? (
+                        data.knowsAbout.map((item) => (
+                          <Badge key={item} variant="outline" className="flex items-center gap-1">
+                            {item}
+                            <button
+                              onClick={() => removeKnowsAbout(item)}
+                              className="ml-1 hover:bg-red-200 rounded-full p-0.5"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-gray-500 text-sm">No services/expertise added</span>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Select onValueChange={addKnowsAbout}>
+                        <SelectTrigger className="bg-white border-gray-200">
+                          <SelectValue placeholder="Select services/expertise" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          {commonKnowsAbout
+                            .filter(item => !data.knowsAbout.includes(item))
+                            .map((item) => (
+                              <SelectItem key={item} value={item} className="hover:bg-gray-100">
+                                {item}
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add custom service/expertise"
+                          value={newKnowsAbout}
+                          onChange={(e) => setNewKnowsAbout(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addCustomKnowsAbout()}
+                          className="flex-1"
+                        />
+                        <Button 
+                          type="button" 
+                          onClick={addCustomKnowsAbout}
                           variant="outline"
                           size="sm"
                         >
@@ -824,6 +1141,68 @@ const BusinessForm = () => {
                     />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="priceRange">Price Range</Label>
+                    <Select value={data.priceRange} onValueChange={(value) => updateField('priceRange', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="$">$ (Budget)</SelectItem>
+                        <SelectItem value="$$">$$ (Moderate)</SelectItem>
+                        <SelectItem value="$$$">$$$ (Expensive)</SelectItem>
+                        <SelectItem value="$$$$">$$$$ (Very Expensive)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select value={data.currency} onValueChange={(value) => updateField('currency', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="AED">AED (د.إ)</SelectItem>
+                        <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                        <SelectItem value="QAR">QAR (ر.ق)</SelectItem>
+                        <SelectItem value="KWD">KWD (د.ك)</SelectItem>
+                        <SelectItem value="BHD">BHD (.د.ب)</SelectItem>
+                        <SelectItem value="OMR">OMR (ر.ع.)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="acceptsReservations"
+                      checked={data.acceptsReservations}
+                      onChange={(e) => updateField('acceptsReservations', e.target.checked)}
+                    />
+                    <Label htmlFor="acceptsReservations">Accepts Reservations</Label>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Payment Methods</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {paymentOptions.map((method) => (
+                      <label key={method} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={data.paymentMethods.includes(method)}
+                          onChange={() => togglePaymentMethod(method)}
+                          className="rounded border-gray-300"
+                        />
+                        <span className="text-sm">{method}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
             
@@ -857,6 +1236,20 @@ const BusinessForm = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="googlePlacesApiKey">Google Places API Key (Optional)</Label>
+                  <Input
+                    id="googlePlacesApiKey"
+                    value={data.googlePlacesApiKey}
+                    onChange={(e) => updateField('googlePlacesApiKey', e.target.value)}
+                    placeholder="Enter your Google Places API key for autocomplete"
+                    type="password"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    This enables address autocomplete and auto-fills location data
+                  </p>
+                </div>
+
                 <GooglePlacesAutocomplete
                   value={data.street}
                   onChange={(value) => updateField('street', value)}
@@ -990,7 +1383,62 @@ const BusinessForm = () => {
                       
                       <div>
                         <Label className="text-sm font-medium mb-3 block">Select Days</Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Latitude</Label>
+                          <Input
+                            value={branch.latitude}
+                            onChange={(e) => updateBranch(index, 'latitude', e.target.value)}
+                            placeholder="51.5074"
+                          />
+                        </div>
+                        <div>
+                          <Label>Longitude</Label>
+                          <Input
+                            value={branch.longitude}
+                            onChange={(e) => updateBranch(index, 'longitude', e.target.value)}
+                            placeholder="-0.1278"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                
+                <Button onClick={addBranch} variant="outline" className="w-full">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Branch
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Final Section Navigation */}
+            <div className="flex justify-between items-center mt-6">
+              <Button 
+                variant="outline" 
+                onClick={previousTab}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button 
+                onClick={downloadSchema}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Generate & Download Schema
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default BusinessForm;d grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                           {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                             <label key={day} className="flex items-center space-x-2 cursor-pointer">
                               <input
@@ -1040,12 +1488,12 @@ const BusinessForm = () => {
 
               <Card className="shadow-lg">
                 <CardHeader>
-                  <CardTitle>Services & Offers</CardTitle>
+                  <CardTitle>Services & Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {data.services.map((service, index) => (
                     <div key={index} className="p-4 border rounded-lg">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                           <Label>Service Name</Label>
                           <Input
@@ -1056,31 +1504,20 @@ const BusinessForm = () => {
                         </div>
                         <div>
                           <Label>Price ({data.currency})</Label>
-                          <div className="flex gap-2">
-                            <Select value={data.currency} onValueChange={(value) => updateField('currency', value)}>
-                              <SelectTrigger className="w-20">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="GBP">GBP</SelectItem>
-                                <SelectItem value="USD">USD</SelectItem>
-                                <SelectItem value="EUR">EUR</SelectItem>
-                                <SelectItem value="AED">AED</SelectItem>
-                                <SelectItem value="SAR">SAR</SelectItem>
-                                <SelectItem value="QAR">QAR</SelectItem>
-                                <SelectItem value="KWD">KWD</SelectItem>
-                                <SelectItem value="BHD">BHD</SelectItem>
-                                <SelectItem value="OMR">OMR</SelectItem>
-                                <SelectItem value="INR">INR</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Input
-                              className="flex-1"
-                              value={service.price}
-                              onChange={(e) => updateService(index, 'price', e.target.value)}
-                              placeholder="900"
-                            />
-                          </div>
+                          <Input
+                            value={service.price}
+                            onChange={(e) => updateService(index, 'price', e.target.value)}
+                            placeholder="100"
+                            type="number"
+                          />
+                        </div>
+                        <div>
+                          <Label>Service URL</Label>
+                          <Input
+                            value={service.url}
+                            onChange={(e) => updateService(index, 'url', e.target.value)}
+                            placeholder="https://example.com/service"
+                          />
                         </div>
                         <div className="flex items-end">
                           <Button
@@ -1176,12 +1613,13 @@ const BusinessForm = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="ratingValue">Rating Value</Label>
+                    <Label htmlFor="ratingValue">Rating Value (0-5)</Label>
                     <Input
                       id="ratingValue"
                       value={data.ratingValue}
                       onChange={(e) => updateField('ratingValue', e.target.value)}
                       placeholder="4.9"
+                      type="number"
                       step="0.1"
                       min="0"
                       max="5"
@@ -1194,6 +1632,7 @@ const BusinessForm = () => {
                       value={data.reviewCount}
                       onChange={(e) => updateField('reviewCount', e.target.value)}
                       placeholder="187"
+                      type="number"
                     />
                   </div>
                 </div>
@@ -1225,139 +1664,90 @@ const BusinessForm = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-blue-600" />
-                  Business Branches
+                  Business Branches (Optional)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {data.branches.map((branch, index) => (
-                  <div key={index} className="p-6 border rounded-lg space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-semibold">Branch {index + 1}</h4>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeBranch(index)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Branch Name</Label>
-                        <Input
-                          value={branch.name}
-                          onChange={(e) => updateBranch(index, 'name', e.target.value)}
-                          placeholder="London Branch"
-                        />
-                      </div>
-                      <div>
-                        <Label>Branch URL</Label>
-                        <Input
-                          value={branch.url}
-                          onChange={(e) => updateBranch(index, 'url', e.target.value)}
-                          placeholder="https://your-domain.com/locations/london/"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label>Phone</Label>
-                      <Input
-                        value={branch.phone}
-                        onChange={(e) => updateBranch(index, 'phone', e.target.value)}
-                        placeholder="+44-20-XXXX-XXXX"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Street Address</Label>
-                      <Input
-                        value={branch.street}
-                        onChange={(e) => updateBranch(index, 'street', e.target.value)}
-                        placeholder="Street, Building, Unit"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label>City</Label>
-                        <Input
-                          value={branch.city}
-                          onChange={(e) => updateBranch(index, 'city', e.target.value)}
-                          placeholder="London"
-                        />
-                      </div>
-                      <div>
-                        <Label>State/Region</Label>
-                        <Input
-                          value={branch.region}
-                          onChange={(e) => updateBranch(index, 'region', e.target.value)}
-                          placeholder="England"
-                        />
-                      </div>
-                      <div>
-                        <Label>Postal Code</Label>
-                        <Input
-                          value={branch.postalCode}
-                          onChange={(e) => updateBranch(index, 'postalCode', e.target.value)}
-                          placeholder="SW1A 1AA"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Latitude</Label>
-                        <Input
-                          value={branch.latitude}
-                          onChange={(e) => updateBranch(index, 'latitude', e.target.value)}
-                          placeholder="51.5074"
-                        />
-                      </div>
-                      <div>
-                        <Label>Longitude</Label>
-                        <Input
-                          value={branch.longitude}
-                          onChange={(e) => updateBranch(index, 'longitude', e.target.value)}
-                          placeholder="-0.1278"
-                        />
-                      </div>
-                    </div>
+                {data.branches.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">No branches added yet. Branches are optional but help with multi-location SEO.</p>
                   </div>
-                ))}
-                
-                <Button onClick={addBranch} variant="outline" className="w-full">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Branch
-                </Button>
-              </CardContent>
-            </Card>
-            
-            {/* Final Section Navigation */}
-            <div className="flex justify-between items-center mt-6">
-              <Button 
-                variant="outline" 
-                onClick={previousTab}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </Button>
-              <Button 
-                onClick={downloadSchema}
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 flex items-center gap-2"
-              >
-                <Download className="w-5 h-5" />
-                Generate & Download Schema
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-};
-
-export default BusinessForm;
+                ) : (
+                  data.branches.map((branch, index) => (
+                    <div key={index} className="p-6 border rounded-lg space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold">Branch {index + 1}</h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeBranch(index)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Branch Name</Label>
+                          <Input
+                            value={branch.name}
+                            onChange={(e) => updateBranch(index, 'name', e.target.value)}
+                            placeholder="London Branch"
+                          />
+                        </div>
+                        <div>
+                          <Label>Branch URL</Label>
+                          <Input
+                            value={branch.url}
+                            onChange={(e) => updateBranch(index, 'url', e.target.value)}
+                            placeholder="https://your-domain.com/locations/london/"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label>Phone</Label>
+                        <Input
+                          value={branch.phone}
+                          onChange={(e) => updateBranch(index, 'phone', e.target.value)}
+                          placeholder="+44-20-XXXX-XXXX"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>Street Address</Label>
+                        <Input
+                          value={branch.street}
+                          onChange={(e) => updateBranch(index, 'street', e.target.value)}
+                          placeholder="Street, Building, Unit"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label>City</Label>
+                          <Input
+                            value={branch.city}
+                            onChange={(e) => updateBranch(index, 'city', e.target.value)}
+                            placeholder="London"
+                          />
+                        </div>
+                        <div>
+                          <Label>State/Region</Label>
+                          <Input
+                            value={branch.region}
+                            onChange={(e) => updateBranch(index, 'region', e.target.value)}
+                            placeholder="England"
+                          />
+                        </div>
+                        <div>
+                          <Label>Postal Code</Label>
+                          <Input
+                            value={branch.postalCode}
+                            onChange={(e) => updateBranch(index, 'postalCode', e.target.value)}
+                            placeholder="SW1A 1AA"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="gri
