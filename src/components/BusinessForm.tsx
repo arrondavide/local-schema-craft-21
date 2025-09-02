@@ -1020,49 +1020,14 @@ const BusinessForm = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="priceRange">Price Range</Label>
-                    <Select value={data.priceRange} onValueChange={(value) => updateField('priceRange', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="$">$ (Budget)</SelectItem>
-                        <SelectItem value="$$">$$ (Moderate)</SelectItem>
-                        <SelectItem value="$$$">$$$ (Expensive)</SelectItem>
-                        <SelectItem value="$$$$">$$$$ (Very Expensive)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="currency">Currency</Label>
-                    <Select value={data.currency} onValueChange={(value) => updateField('currency', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="GBP">GBP (£)</SelectItem>
-                        <SelectItem value="USD">USD ($)</SelectItem>
-                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                        <SelectItem value="AED">AED (د.إ)</SelectItem>
-                        <SelectItem value="SAR">SAR (ر.س)</SelectItem>
-                        <SelectItem value="QAR">QAR (ر.ق)</SelectItem>
-                        <SelectItem value="KWD">KWD (د.ك)</SelectItem>
-                        <SelectItem value="BHD">BHD (.د.ب)</SelectItem>
-                        <SelectItem value="OMR">OMR (ر.ع.)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="acceptsReservations"
-                      checked={data.acceptsReservations}
-                      onChange={(e) => updateField('acceptsReservations', e.target.checked)}
-                    />
-                    <Label htmlFor="acceptsReservations">Accepts Reservations</Label>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="acceptsReservations"
+                    checked={data.acceptsReservations}
+                    onChange={(e) => updateField('acceptsReservations', e.target.checked)}
+                  />
+                  <Label htmlFor="acceptsReservations">Accepts Reservations</Label>
                 </div>
 
                 <div>
@@ -1113,20 +1078,6 @@ const BusinessForm = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="googlePlacesApiKey">Google Places API Key (Optional)</Label>
-                  <Input
-                    id="googlePlacesApiKey"
-                    value={data.googlePlacesApiKey}
-                    onChange={(e) => updateField('googlePlacesApiKey', e.target.value)}
-                    placeholder="Enter your Google Places API key for autocomplete"
-                    type="password"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    This enables address autocomplete and auto-fills location data
-                  </p>
-                </div>
-
                 <GooglePlacesAutocomplete
                   value={data.street}
                   onChange={(value) => updateField('street', value)}
@@ -1312,6 +1263,26 @@ const BusinessForm = () => {
                   <CardTitle>Services & Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="currency">Currency for Services</Label>
+                    <Select value={data.currency} onValueChange={(value) => updateField('currency', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AED">AED (د.إ)</SelectItem>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                        <SelectItem value="QAR">QAR (ر.ق)</SelectItem>
+                        <SelectItem value="KWD">KWD (د.ك)</SelectItem>
+                        <SelectItem value="BHD">BHD (.د.ب)</SelectItem>
+                        <SelectItem value="OMR">OMR (ر.ع.)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {data.services.map((service, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1324,7 +1295,7 @@ const BusinessForm = () => {
                           />
                         </div>
                         <div>
-                          <Label>Price ({data.currency})</Label>
+                          <Label>Price</Label>
                           <Input
                             value={service.price}
                             onChange={(e) => updateService(index, 'price', e.target.value)}
