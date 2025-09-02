@@ -11,81 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check, Eye, Copy } from 'lucide-react';
 
-interface BusinessData {
-  businessTypes: string[];
-  businessName: string;
-  legalName: string;
-  website: string;
-  logoUrl: string;
-  heroImageUrl: string;
-  phone: string;
-  phoneCode: string;
-  email: string;
-  street: string;
-  city: string;
-  region: string;
-  postalCode: string;
-  country: string;
-  latitude: string;
-  longitude: string;
-  googlePlacesApiKey: string;
-  ratingValue: string;
-  reviewCount: string;
-  instagram: string;
-  facebook: string;
-  tiktok: string;
-  linkedin: string;
-  currency: string;
-  areaServed: string;
-  priceRange: string;
-  acceptsReservations: boolean;
-  paymentMethods: string[];
-  knowsAbout: string[];
-  services: Array<{
-    name: string;
-    price: string;
-    url: string;
-  }>;
-  openingHours: Array<{
-    days: string[];
-    opens: string;
-    closes: string;
-  }>;
-  branches: Array<{
-    name: string;
-    url: string;
-    phone: string;
-    street: string;
-    city: string;
-    region: string;
-    postalCode: string;
-    latitude: string;
-    longitude: string;
-  }>;
-}
-
-// Google Places Autocomplete Component (keeping the existing implementation)
-interface GooglePlacesAutocompleteProps {
-  value: string;
-  onChange: (value: string) => void;
-  onPlaceSelect: (place: any) => void;
-  placeholder?: string;
-  label?: string;
-  apiKey?: string;
-}
-
-const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
-  value,
-  onChange,
-  onPlaceSelect,
-  placeholder = "Enter address",
-  label = "Address",
-  apiKey
-}) => {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const autocompleteRef = React.useRef<any>(null);
+// Google Places Autocomplete Component
+const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder = "Enter address", label = "Address", apiKey }) => {
+  const inputRef = React.useRef(null);
+  const autocompleteRef = React.useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!apiKey) return;
@@ -102,7 +33,7 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
         script.async = true;
         script.defer = true;
 
-        (window as any).initAutocomplete = () => {
+        window.initAutocomplete = () => {
           setIsLoaded(true);
         };
 
@@ -293,7 +224,7 @@ const BusinessForm = () => {
     { id: 'branches', label: 'Branches', icon: Star }
   ];
   
-  const [data, setData] = useState<BusinessData>({
+  const [data, setData] = useState({
     businessTypes: [],
     businessName: '',
     legalName: '',
@@ -310,7 +241,7 @@ const BusinessForm = () => {
     country: '',
     latitude: '',
     longitude: '',
-    googlePlacesApiKey: '',
+    googlePlacesApiKey: 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ',
     ratingValue: '',
     reviewCount: '',
     instagram: '',
@@ -319,7 +250,7 @@ const BusinessForm = () => {
     linkedin: '',
     currency: 'GBP',
     areaServed: '',
-    priceRange: '$$',
+    priceRange: '$',
     acceptsReservations: true,
     paymentMethods: ['Cash', 'Credit Card', 'Debit Card'],
     knowsAbout: [],
@@ -328,11 +259,11 @@ const BusinessForm = () => {
     branches: []
   });
 
-  const updateField = (field: keyof BusinessData, value: any) => {
+  const updateField = (field, value) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
-  const extractAddressComponents = (place: any) => {
+  const extractAddressComponents = (place) => {
     const components = place.address_components || [];
     const geometry = place.geometry;
     
@@ -343,7 +274,7 @@ const BusinessForm = () => {
     let latitude = '';
     let longitude = '';
 
-    components.forEach((component: any) => {
+    components.forEach((component) => {
       const types = component.types;
       
       if (types.includes('locality') || types.includes('administrative_area_level_2')) {
@@ -366,7 +297,7 @@ const BusinessForm = () => {
     return { city, region, country, postalCode, latitude, longitude };
   };
 
-  const handlePlaceSelect = (place: any) => {
+  const handlePlaceSelect = (place) => {
     const { city, region, country, postalCode, latitude, longitude } = extractAddressComponents(place);
     
     setData(prev => ({
@@ -380,7 +311,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const addBusinessType = (type: string) => {
+  const addBusinessType = (type) => {
     if (type && type.trim() && !data.businessTypes.includes(type.trim())) {
       setData(prev => ({
         ...prev,
@@ -389,7 +320,7 @@ const BusinessForm = () => {
     }
   };
 
-  const removeBusinessType = (type: string) => {
+  const removeBusinessType = (type) => {
     setData(prev => ({
       ...prev,
       businessTypes: prev.businessTypes.filter(t => t !== type)
@@ -403,7 +334,7 @@ const BusinessForm = () => {
     }
   };
 
-  const addKnowsAbout = (item: string) => {
+  const addKnowsAbout = (item) => {
     if (item && item.trim() && !data.knowsAbout.includes(item.trim())) {
       setData(prev => ({
         ...prev,
@@ -412,7 +343,7 @@ const BusinessForm = () => {
     }
   };
 
-  const removeKnowsAbout = (item: string) => {
+  const removeKnowsAbout = (item) => {
     setData(prev => ({
       ...prev,
       knowsAbout: prev.knowsAbout.filter(k => k !== item)
@@ -426,7 +357,7 @@ const BusinessForm = () => {
     }
   };
 
-  const togglePaymentMethod = (method: string) => {
+  const togglePaymentMethod = (method) => {
     setData(prev => ({
       ...prev,
       paymentMethods: prev.paymentMethods.includes(method)
@@ -442,7 +373,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const updateService = (index: number, field: string, value: string) => {
+  const updateService = (index, field, value) => {
     setData(prev => ({
       ...prev,
       services: prev.services.map((service, i) => 
@@ -451,7 +382,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const removeService = (index: number) => {
+  const removeService = (index) => {
     setData(prev => ({
       ...prev,
       services: prev.services.filter((_, i) => i !== index)
@@ -465,7 +396,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const updateOpeningHours = (index: number, field: 'opens' | 'closes', value: string) => {
+  const updateOpeningHours = (index, field, value) => {
     setData(prev => ({
       ...prev,
       openingHours: prev.openingHours.map((hours, i) => 
@@ -474,7 +405,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const updateOpeningHoursDays = (index: number, day: string, checked: boolean) => {
+  const updateOpeningHoursDays = (index, day, checked) => {
     setData(prev => ({
       ...prev,
       openingHours: prev.openingHours.map((hours, i) => 
@@ -488,7 +419,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const removeOpeningHours = (index: number) => {
+  const removeOpeningHours = (index) => {
     setData(prev => ({
       ...prev,
       openingHours: prev.openingHours.filter((_, i) => i !== index)
@@ -512,7 +443,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const updateBranch = (index: number, field: string, value: string) => {
+  const updateBranch = (index, field, value) => {
     setData(prev => ({
       ...prev,
       branches: prev.branches.map((branch, i) => 
@@ -521,7 +452,7 @@ const BusinessForm = () => {
     }));
   };
 
-  const removeBranch = (index: number) => {
+  const removeBranch = (index) => {
     setData(prev => ({
       ...prev,
       branches: prev.branches.filter((_, i) => i !== index)
@@ -547,7 +478,7 @@ const BusinessForm = () => {
     return ((currentIndex + 1) / tabs.length) * 100;
   };
 
-  const getSectionCompleteness = (tabId: string) => {
+  const getSectionCompleteness = (tabId) => {
     switch (tabId) {
       case 'basic':
         return data.businessName && data.website && data.businessTypes && data.businessTypes.length > 0;
@@ -565,117 +496,89 @@ const BusinessForm = () => {
   };
 
   const generateSchema = () => {
-    let schema: any = {
+    let schema = {
       "@context": "https://schema.org"
     };
 
-    // Validate essential data
-    const hasEssentialData = data.businessName && data.businessName.trim();
-    
-    if (!hasEssentialData) {
-      return {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Please fill in required fields",
-        "description": "Business name is required to generate a valid schema"
-      };
-    }
-
-    // Business Type - fallback to LocalBusiness if none specified
+    // Business Type
     if (data.businessTypes && data.businessTypes.length > 0) {
-      schema["@type"] = data.businessTypes.length === 1 ? data.businessTypes[0] : data.businessTypes;
-    } else {
-      schema["@type"] = "LocalBusiness";
+      schema["@type"] = data.businessTypes;
     }
 
     // Basic Business Info
     const domain = data.website ? data.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
     
     if (domain) {
-      schema["@id"] = `https://${domain}/#business`;
+      schema["@id"] = `https://${domain}/#clinic`;
       schema.url = data.website;
-    } else {
-      // Generate a basic ID even without website
-      schema["@id"] = `#${data.businessName.toLowerCase().replace(/\s+/g, '-')}`;
     }
     
-    schema.name = data.businessName;
+    if (data.businessName) {
+      schema.name = data.businessName;
+    }
     
-    if (data.legalName && data.legalName.trim()) {
+    if (data.legalName) {
       schema.legalName = data.legalName;
     }
+
+    // Images
+    const images = [];
+    if (data.heroImageUrl) images.push(data.heroImageUrl);
+    if (data.logoUrl) images.push(data.logoUrl);
     
-    if (data.phone && data.phone.trim()) {
+    if (images.length > 0) {
+      schema.image = images;
+    }
+    
+    if (data.logoUrl) {
+      schema.logo = data.logoUrl;
+    }
+    
+    if (data.phone) {
       schema.telephone = `${data.phoneCode}-${data.phone}`;
     }
     
-    if (data.email && data.email.trim()) {
+    if (data.email) {
       schema.email = data.email;
     }
 
-    // Price and Payment
-    if (data.priceRange) {
-      schema.priceRange = data.priceRange;
-    }
-    
-    if (data.currency) {
-      schema.currenciesAccepted = data.currency;
-    }
-    
     if (data.paymentMethods && data.paymentMethods.length > 0) {
       schema.paymentAccepted = data.paymentMethods.join(', ');
     }
     
-    if (data.acceptsReservations !== undefined) {
-      schema.acceptsReservations = data.acceptsReservations.toString();
+    if (data.acceptsReservations) {
+      schema.acceptsReservations = "True";
     }
     
-    // Images
-    const images = [];
-    if (data.heroImageUrl && data.heroImageUrl.trim()) images.push(data.heroImageUrl);
-    if (data.logoUrl && data.logoUrl.trim()) images.push(data.logoUrl);
-    
-    if (images.length > 0) {
-      schema.image = images;
-      if (data.logoUrl && data.logoUrl.trim()) {
-        schema.logo = data.logoUrl;
-      }
-    }
-    
-    // Address - only include if we have at least street OR city
-    const hasAddressData = (data.street && data.street.trim()) || (data.city && data.city.trim());
-    if (hasAddressData) {
-      const addressData: any = {
-        "@type": "PostalAddress"
-      };
+    // Coordinates and Map
+    if (data.latitude && data.longitude) {
+      schema.hasMap = `https://maps.google.com/?q=${data.latitude},${data.longitude}`;
       
-      if (data.street && data.street.trim()) addressData.streetAddress = data.street;
-      if (data.city && data.city.trim()) addressData.addressLocality = data.city;
-      if (data.region && data.region.trim()) addressData.addressRegion = data.region;
-      if (data.postalCode && data.postalCode.trim()) addressData.postalCode = data.postalCode;
-      if (data.country && data.country.trim()) addressData.addressCountry = data.country;
-      
-      schema.address = addressData;
-    }
-    
-    // Geo coordinates - only include if we have BOTH latitude AND longitude
-    if (data.latitude && data.longitude && !isNaN(parseFloat(data.latitude)) && !isNaN(parseFloat(data.longitude))) {
       schema.geo = {
         "@type": "GeoCoordinates",
         latitude: parseFloat(data.latitude),
         longitude: parseFloat(data.longitude)
       };
-      
-      schema.hasMap = `https://maps.google.com/?q=${data.latitude},${data.longitude}`;
     }
     
-    // Opening Hours - only include if we have at least one complete schedule
-    const validOpeningHours = data.openingHours?.filter(hours => 
-      hours.days && hours.days.length > 0 && hours.opens && hours.closes
-    );
+    // Address
+    if (data.street || data.city) {
+      const addressData = {
+        "@type": "PostalAddress"
+      };
+      
+      if (data.street) addressData.streetAddress = data.street;
+      if (data.city) addressData.addressLocality = data.city;
+      if (data.region) addressData.addressRegion = data.region;
+      if (data.postalCode) addressData.postalCode = data.postalCode;
+      if (data.country) addressData.addressCountry = data.country;
+      
+      schema.address = addressData;
+    }
     
-    if (validOpeningHours && validOpeningHours.length > 0) {
-      schema.openingHoursSpecification = validOpeningHours.map(hours => ({
+    // Opening Hours
+    if (data.openingHours && data.openingHours.length > 0) {
+      schema.openingHoursSpecification = data.openingHours.map(hours => ({
         "@type": "OpeningHoursSpecification",
         dayOfWeek: hours.days,
         opens: hours.opens,
@@ -683,36 +586,32 @@ const BusinessForm = () => {
       }));
     }
     
-    // Social Links - only include if we have at least one
+    // Social Links
     const socialLinks = [];
-    if (data.instagram && data.instagram.trim()) socialLinks.push(`https://www.instagram.com/${data.instagram}`);
-    if (data.facebook && data.facebook.trim()) socialLinks.push(`https://www.facebook.com/${data.facebook}`);
-    if (data.tiktok && data.tiktok.trim()) socialLinks.push(`https://www.tiktok.com/@${data.tiktok}`);
-    if (data.linkedin && data.linkedin.trim()) socialLinks.push(`https://www.linkedin.com/company/${data.linkedin}`);
+    if (data.instagram) socialLinks.push(`https://www.instagram.com/${data.instagram}`);
+    if (data.facebook) socialLinks.push(`https://www.facebook.com/${data.facebook}`);
+    if (data.tiktok) socialLinks.push(`https://www.tiktok.com/@${data.tiktok}`);
+    if (data.linkedin) socialLinks.push(`https://www.linkedin.com/company/${data.linkedin}`);
     
     if (socialLinks.length > 0) {
       schema.sameAs = socialLinks;
     }
     
-    // Services and Expertise - only include if not empty
+    // Services and Expertise
     if (data.knowsAbout && data.knowsAbout.length > 0) {
       schema.knowsAbout = data.knowsAbout;
     }
     
-    // Services/Offers - only include services with both name and price
-    const validServices = data.services?.filter(service => 
-      service.name && service.name.trim() && service.price && service.price.trim()
-    );
-    
-    if (validServices && validServices.length > 0) {
+    // Services/Offers
+    if (data.services && data.services.length > 0) {
       schema.makesOffer = {
         "@type": "OfferCatalog",
-        name: `${data.businessName} Services`,
-        itemListElement: validServices.map(service => ({
+        name: "Clinic Services",
+        itemListElement: data.services.map(service => ({
           "@type": "Offer",
           name: service.name,
-          url: service.url || schema.url || `#${service.name.toLowerCase().replace(/\s+/g, '-')}`,
-          priceCurrency: data.currency || 'USD',
+          url: service.url,
+          priceCurrency: data.currency,
           priceSpecification: {
             "@type": "PriceSpecification",
             price: service.price
@@ -722,97 +621,76 @@ const BusinessForm = () => {
       };
     }
     
-    // Area Served - only if specified
-    if (data.areaServed && data.areaServed.trim()) {
+    // Area Served
+    if (data.areaServed) {
       schema.areaServed = {
         "@type": "City",
         name: data.areaServed
       };
     }
     
-    // Booking Action - only if we have a website
+    // Booking Action
     if (schema.url) {
       schema.potentialAction = {
         "@type": "ReserveAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: `${schema.url}/book/`,
+          urlTemplate: `${schema.url}book/`,
           inLanguage: "en"
         }
       };
     }
     
-    // Rating - only include if we have BOTH rating and review count
-    if (data.ratingValue && data.reviewCount && 
-        !isNaN(parseFloat(data.ratingValue)) && !isNaN(parseInt(data.reviewCount))) {
-      const rating = parseFloat(data.ratingValue);
-      const reviews = parseInt(data.reviewCount);
-      
-      if (rating >= 0 && rating <= 5 && reviews > 0) {
-        schema.aggregateRating = {
-          "@type": "AggregateRating",
-          ratingValue: data.ratingValue,
-          reviewCount: data.reviewCount
-        };
-      }
+    // Rating
+    if (data.ratingValue && data.reviewCount) {
+      schema.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: data.ratingValue,
+        reviewCount: data.reviewCount
+      };
     }
     
-    // Branches - only include if we have valid branch data AND main business has sufficient data
-    const validBranches = data.branches?.filter(branch => 
-      branch.name && branch.name.trim() && 
-      branch.city && branch.city.trim()
-    );
-    
-    if (validBranches && validBranches.length > 0 && schema.url) {
+    // Branches
+    if (data.branches && data.branches.length > 0 && schema.url) {
       const orgData = {
         "@type": "Organization",
         "@id": `${schema.url}/#org`,
         name: data.businessName,
-        url: schema.url
+        url: schema.url,
+        logo: data.logoUrl
       };
-      
-      if (schema.logo) {
-        orgData.logo = schema.logo;
-      }
       
       if (socialLinks.length > 0) {
         orgData.sameAs = socialLinks;
       }
       
-      const branchData = validBranches.map((branch, index) => {
-        const branchSchema: any = {
+      const branchData = data.branches.map((branch) => {
+        const branchSchema = {
           "@type": "LocalBusiness",
           "@id": `${schema.url}/#branch-${branch.name.toLowerCase().replace(/\s+/g, '-')}`,
           branchOf: {
             "@id": `${schema.url}/#org`
           },
           name: `${data.businessName} - ${branch.name}`,
-          url: branch.url || schema.url
+          url: branch.url,
+          telephone: branch.phone
         };
         
-        if (branch.phone && branch.phone.trim()) {
-          branchSchema.telephone = branch.phone;
-        }
-        
-        // Branch Address - only include if we have meaningful address data
-        const hasBranchAddress = branch.street?.trim() || branch.city?.trim();
-        if (hasBranchAddress) {
-          const branchAddress: any = {
+        if (branch.street || branch.city) {
+          const branchAddress = {
             "@type": "PostalAddress"
           };
           
-          if (branch.street?.trim()) branchAddress.streetAddress = branch.street;
-          if (branch.city?.trim()) branchAddress.addressLocality = branch.city;
-          if (branch.region?.trim()) branchAddress.addressRegion = branch.region;
-          if (branch.postalCode?.trim()) branchAddress.postalCode = branch.postalCode;
-          if (data.country?.trim()) branchAddress.addressCountry = data.country;
+          if (branch.street) branchAddress.streetAddress = branch.street;
+          if (branch.city) branchAddress.addressLocality = branch.city;
+          if (branch.region) branchAddress.addressRegion = branch.region;
+          if (branch.postalCode) branchAddress.postalCode = branch.postalCode;
+          if (data.country) branchAddress.addressCountry = data.country;
           
           branchSchema.address = branchAddress;
         }
         
-        // Branch Coordinates - only include if we have both values and they're valid numbers
-        if (branch.latitude && branch.longitude && 
-            !isNaN(parseFloat(branch.latitude)) && !isNaN(parseFloat(branch.longitude))) {
+        if (branch.latitude && branch.longitude) {
           branchSchema.geo = {
             "@type": "GeoCoordinates",
             latitude: parseFloat(branch.latitude),
@@ -1206,7 +1084,6 @@ const BusinessForm = () => {
               </CardContent>
             </Card>
             
-            {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
               <Button 
                 variant="outline" 
@@ -1338,7 +1215,6 @@ const BusinessForm = () => {
               </CardContent>
             </Card>
             
-            {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
               <Button 
                 variant="outline" 
@@ -1383,62 +1259,7 @@ const BusinessForm = () => {
                       
                       <div>
                         <Label className="text-sm font-medium mb-3 block">Select Days</Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Latitude</Label>
-                          <Input
-                            value={branch.latitude}
-                            onChange={(e) => updateBranch(index, 'latitude', e.target.value)}
-                            placeholder="51.5074"
-                          />
-                        </div>
-                        <div>
-                          <Label>Longitude</Label>
-                          <Input
-                            value={branch.longitude}
-                            onChange={(e) => updateBranch(index, 'longitude', e.target.value)}
-                            placeholder="-0.1278"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-                
-                <Button onClick={addBranch} variant="outline" className="w-full">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Branch
-                </Button>
-              </CardContent>
-            </Card>
-            
-            {/* Final Section Navigation */}
-            <div className="flex justify-between items-center mt-6">
-              <Button 
-                variant="outline" 
-                onClick={previousTab}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </Button>
-              <Button 
-                onClick={downloadSchema}
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 flex items-center gap-2"
-              >
-                <Download className="w-5 h-5" />
-                Generate & Download Schema
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-};
-
-export default BusinessForm;d grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                           {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                             <label key={day} className="flex items-center space-x-2 cursor-pointer">
                               <input
@@ -1540,7 +1361,6 @@ export default BusinessForm;d grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
               </Card>
             </div>
             
-            {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
               <Button 
                 variant="outline" 
@@ -1639,7 +1459,6 @@ export default BusinessForm;d grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
               </CardContent>
             </Card>
             
-            {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
               <Button 
                 variant="outline" 
@@ -1750,4 +1569,58 @@ export default BusinessForm;d grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                         </div>
                       </div>
                       
-                      <div className="gri
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Latitude</Label>
+                          <Input
+                            value={branch.latitude}
+                            onChange={(e) => updateBranch(index, 'latitude', e.target.value)}
+                            placeholder="51.5074"
+                          />
+                        </div>
+                        <div>
+                          <Label>Longitude</Label>
+                          <Input
+                            value={branch.longitude}
+                            onChange={(e) => updateBranch(index, 'longitude', e.target.value)}
+                            placeholder="-0.1278"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                
+                <Button onClick={addBranch} variant="outline" className="w-full">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Branch
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <div className="flex justify-between items-center mt-6">
+              <Button 
+                variant="outline" 
+                onClick={previousTab}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button 
+                onClick={downloadSchema}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Generate & Download Schema
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default BusinessForm;
