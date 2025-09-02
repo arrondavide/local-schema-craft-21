@@ -273,12 +273,17 @@ const BusinessForm = () => {
     let postalCode = '';
     let latitude = '';
     let longitude = '';
+    let areaServed = '';
 
     components.forEach((component) => {
       const types = component.types;
       
-      if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+      if (types.includes('locality')) {
         city = component.long_name;
+        areaServed = component.long_name; // Set area served same as city
+      } else if (types.includes('administrative_area_level_2') && !city) {
+        city = component.long_name;
+        areaServed = component.long_name;
       } else if (types.includes('administrative_area_level_1')) {
         region = component.long_name;
       } else if (types.includes('country')) {
@@ -289,16 +294,17 @@ const BusinessForm = () => {
       }
     });
 
+    // Extract coordinates
     if (geometry && geometry.location) {
       latitude = geometry.location.lat().toString();
       longitude = geometry.location.lng().toString();
     }
 
-    return { city, region, country, postalCode, latitude, longitude };
+    return { city, region, country, postalCode, latitude, longitude, areaServed };
   };
 
   const handlePlaceSelect = (place) => {
-    const { city, region, country, postalCode, latitude, longitude } = extractAddressComponents(place);
+    const { city, region, country, postalCode, latitude, longitude, areaServed } = extractAddressComponents(place);
     
     setData(prev => ({
       ...prev,
@@ -307,7 +313,8 @@ const BusinessForm = () => {
       country: country || prev.country,
       postalCode: postalCode || prev.postalCode,
       latitude: latitude || prev.latitude,
-      longitude: longitude || prev.longitude
+      longitude: longitude || prev.longitude,
+      areaServed: areaServed || prev.areaServed
     }));
   };
 
@@ -483,7 +490,7 @@ const BusinessForm = () => {
       case 'basic':
         return data.businessName && data.website && data.businessTypes && data.businessTypes.length > 0;
       case 'location':
-        return data.street && data.city;
+        return data.street && data.city && data.region && data.postalCode && data.country && data.latitude && data.longitude && data.areaServed;
       case 'hours':
         return data.openingHours && data.openingHours.length > 0;
       case 'social':
@@ -1094,32 +1101,35 @@ const BusinessForm = () => {
                       id="city"
                       value={data.city}
                       onChange={(e) => updateField('city', e.target.value)}
-                      placeholder="London"
+                      placeholder="Dubai"
+                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="region">State/Region</Label>
+                    <Label htmlFor="region">State/Region *</Label>
                     <Input
                       id="region"
                       value={data.region}
                       onChange={(e) => updateField('region', e.target.value)}
-                      placeholder="England"
+                      placeholder="Dubai"
+                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="postalCode">Postal Code</Label>
+                    <Label htmlFor="postalCode">Postal Code *</Label>
                     <Input
                       id="postalCode"
                       value={data.postalCode}
                       onChange={(e) => updateField('postalCode', e.target.value)}
-                      placeholder="SW1A 1AA"
+                      placeholder="00000"
+                      required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="country">Country</Label>
-                  <Select value={data.country} onValueChange={(value) => updateField('country', value)}>
+                  <Label htmlFor="country">Country *</Label>
+                  <Select value={data.country} onValueChange={(value) => updateField('country', value)} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a country" />
                     </SelectTrigger>
@@ -1135,32 +1145,35 @@ const BusinessForm = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="latitude">Latitude</Label>
+                    <Label htmlFor="latitude">Latitude *</Label>
                     <Input
                       id="latitude"
                       value={data.latitude}
                       onChange={(e) => updateField('latitude', e.target.value)}
-                      placeholder="51.5074"
+                      placeholder="25.2048"
+                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="longitude">Longitude</Label>
+                    <Label htmlFor="longitude">Longitude *</Label>
                     <Input
                       id="longitude"
                       value={data.longitude}
                       onChange={(e) => updateField('longitude', e.target.value)}
-                      placeholder="-0.1278"
+                      placeholder="55.2708"
+                      required
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <Label htmlFor="areaServed">Area Served</Label>
+                  <Label htmlFor="areaServed">Area Served *</Label>
                   <Input
                     id="areaServed"
                     value={data.areaServed}
                     onChange={(e) => updateField('areaServed', e.target.value)}
-                    placeholder="London"
+                    placeholder="Dubai"
+                    required
                   />
                 </div>
               </CardContent>
