@@ -159,14 +159,14 @@ const BusinessForm = () => {
     { id: 'branches', label: 'Branches', icon: Star }
   ];
   const [data, setData] = useState<BusinessData>({
-    businessTypes: ['MedicalClinic', 'HealthAndBeautyBusiness'],
+    businessTypes: [],
     businessName: '',
     legalName: '',
     website: '',
     logoUrl: '',
     heroImageUrl: '',
     phone: '',
-    phoneCode: '+971',
+    phoneCode: '+44',
     email: '',
     street: '',
     city: '',
@@ -176,22 +176,16 @@ const BusinessForm = () => {
     latitude: '',
     longitude: '',
     googlePlacesApiKey: localStorage.getItem('googlePlacesApiKey') || 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ',
-    ratingValue: '4.9',
-    reviewCount: '187',
+    ratingValue: '',
+    reviewCount: '',
     instagram: '',
     facebook: '',
     tiktok: '',
     linkedin: '',
-    currency: 'AED',
+    currency: 'GBP',
     areaServed: '',
-    services: [
-      { name: 'Anti-Wrinkle Injections', price: '900', url: '' },
-      { name: 'Dermal Filler (1ml)', price: '1200', url: '' }
-    ],
-    openingHours: [
-      { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' },
-      { days: ['Saturday'], opens: '10:00', closes: '16:00' }
-    ],
+    services: [],
+    openingHours: [],
     branches: []
   });
 
@@ -857,41 +851,9 @@ const BusinessForm = () => {
                   value={data.street}
                   onChange={(value) => updateField('street', value)}
                   onPlaceSelect={(place) => {
-                    // Update all location fields when a place is selected
-                    const components = place.address_components || [];
-                    
-                    // Parse address components
-                    components.forEach((component: any) => {
-                      const types = component.types;
-                      
-                      if (types.includes('street_number') || types.includes('route')) {
-                        updateField('street', place.formatted_address?.split(',')[0] || data.street);
-                      }
-                      if (types.includes('locality') || types.includes('administrative_area_level_1')) {
-                        updateField('city', component.long_name);
-                      }
-                      if (types.includes('administrative_area_level_1')) {
-                        updateField('emirate', component.long_name);
-                      }
-                      if (types.includes('postal_code')) {
-                        updateField('postalCode', component.long_name);
-                      }
-                      if (types.includes('country')) {
-                        updateField('country', component.short_name);
-                      }
-                    });
-                    
-                    // Update coordinates if available
-                    if (place.geometry?.location) {
-                      const lat = typeof place.geometry.location.lat === 'function' 
-                        ? place.geometry.location.lat() 
-                        : place.geometry.location.lat;
-                      const lng = typeof place.geometry.location.lng === 'function' 
-                        ? place.geometry.location.lng() 
-                        : place.geometry.location.lng;
-                      
-                      updateField('latitude', lat.toString());
-                      updateField('longitude', lng.toString());
+                    // Only update the street address field, no autofill
+                    if (place.formatted_address) {
+                      updateField('street', place.formatted_address);
                     }
                   }}
                   apiKey={data.googlePlacesApiKey}
