@@ -319,7 +319,7 @@ const BusinessForm = () => {
     country: '',
     latitude: '',
     longitude: '',
-    googlePlacesApiKey: '',
+    googlePlacesApiKey: 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ',
     ratingValue: '',
     reviewCount: '',
     instagram: '',
@@ -857,17 +857,6 @@ const BusinessForm = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="googlePlacesApiKey">Google Places API Key (Optional)</Label>
-                  <Input
-                    id="googlePlacesApiKey"
-                    type="password"
-                    value={data.googlePlacesApiKey}
-                    onChange={(e) => updateField('googlePlacesApiKey', e.target.value)}
-                    placeholder="Enter your Google Places API key for address autocomplete"
-                  />
-                </div>
-                
                 <GooglePlacesAutocomplete
                   value={data.street}
                   onChange={(value) => updateField('street', value)}
