@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
+import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
 interface BusinessData {
   businessTypes: string[];
@@ -28,7 +29,7 @@ interface BusinessData {
   country: string;
   latitude: string;
   longitude: string;
-  areaServed: string;
+  googlePlacesApiKey: string;
   ratingValue: string;
   reviewCount: string;
   instagram: string;
@@ -36,6 +37,7 @@ interface BusinessData {
   tiktok: string;
   linkedin: string;
   currency: string;
+  areaServed: string;
   services: Array<{
     name: string;
     price: string;
@@ -60,7 +62,6 @@ interface BusinessData {
 }
 
 const BusinessForm = () => {
-  const { toast } = useToast();
   const [currentTab, setCurrentTab] = useState('basic');
   const [newBusinessType, setNewBusinessType] = useState('');
   
@@ -174,7 +175,7 @@ const BusinessForm = () => {
     country: '',
     latitude: '',
     longitude: '',
-    areaServed: '',
+    googlePlacesApiKey: localStorage.getItem('googlePlacesApiKey') || '',
     ratingValue: '4.9',
     reviewCount: '187',
     instagram: '',
@@ -182,6 +183,7 @@ const BusinessForm = () => {
     tiktok: '',
     linkedin: '',
     currency: 'AED',
+    areaServed: '',
     services: [
       { name: 'Anti-Wrinkle Injections', price: '900', url: '' },
       { name: 'Dermal Filler (1ml)', price: '1200', url: '' }
@@ -208,6 +210,11 @@ const BusinessForm = () => {
 
   const updateField = (field: keyof BusinessData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
+    
+    // Save Google Places API key to localStorage when it's updated
+    if (field === 'googlePlacesApiKey' && typeof value === 'string') {
+      localStorage.setItem('googlePlacesApiKey', value);
+    }
   };
 
   const addBusinessType = (type: string) => {
@@ -598,8 +605,7 @@ const BusinessForm = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    toast({
-      title: "Schema Generated!",
+    toast("Schema Generated!", {
       description: "Your local-schema.json file has been downloaded successfully."
     });
   };
@@ -837,14 +843,61 @@ const BusinessForm = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="street">Street Address</Label>
+                  <Label htmlFor="googlePlacesApiKey">Google Places API Key (Optional)</Label>
                   <Input
-                    id="street"
-                    value={data.street}
-                    onChange={(e) => updateField('street', e.target.value)}
-                    placeholder="Street, Building, Unit"
+                    id="googlePlacesApiKey"
+                    type="password"
+                    value={data.googlePlacesApiKey}
+                    onChange={(e) => updateField('googlePlacesApiKey', e.target.value)}
+                    placeholder="Enter your Google Places API key for address autocomplete"
                   />
                 </div>
+                
+                <GooglePlacesAutocomplete
+                  value={data.street}
+                  onChange={(value) => updateField('street', value)}
+                  onPlaceSelect={(place) => {
+                    // Update all location fields when a place is selected
+                    const components = place.address_components || [];
+                    
+                    // Parse address components
+                    components.forEach((component: any) => {
+                      const types = component.types;
+                      
+                      if (types.includes('street_number') || types.includes('route')) {
+                        updateField('street', place.formatted_address?.split(',')[0] || data.street);
+                      }
+                      if (types.includes('locality') || types.includes('administrative_area_level_1')) {
+                        updateField('city', component.long_name);
+                      }
+                      if (types.includes('administrative_area_level_1')) {
+                        updateField('emirate', component.long_name);
+                      }
+                      if (types.includes('postal_code')) {
+                        updateField('postalCode', component.long_name);
+                      }
+                      if (types.includes('country')) {
+                        updateField('country', component.short_name);
+                      }
+                    });
+                    
+                    // Update coordinates if available
+                    if (place.geometry?.location) {
+                      const lat = typeof place.geometry.location.lat === 'function' 
+                        ? place.geometry.location.lat() 
+                        : place.geometry.location.lat;
+                      const lng = typeof place.geometry.location.lng === 'function' 
+                        ? place.geometry.location.lng() 
+                        : place.geometry.location.lng;
+                      
+                      updateField('latitude', lat.toString());
+                      updateField('longitude', lng.toString());
+                    }
+                  }}
+                  apiKey={data.googlePlacesApiKey}
+                  label="Street Address"
+                  placeholder="Start typing an address..."
+                />
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
