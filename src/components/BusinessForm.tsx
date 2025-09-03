@@ -1199,6 +1199,7 @@ const BusinessForm = () => {
                   apiKey={data.googlePlacesApiKey}
                   label="Street Address *"
                   placeholder="Start typing an address..."
+                  enableBusinessSearch={true}
                 />
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
