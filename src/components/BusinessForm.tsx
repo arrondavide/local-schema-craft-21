@@ -12,15 +12,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check, Eye, Copy } from 'lucide-react';
 
 // Google Places Autocomplete Component
-const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder = "Enter address", label = "Address", apiKey }) => {
+const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder = "Enter address", label = "Address", apiKey = 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ' }) => {
   const inputRef = React.useRef(null);
   const autocompleteRef = React.useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!apiKey) return;
+  // Always use hardcoded API key
+  const HARDCODED_API_KEY = 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ';
 
+  useEffect(() => {
     const loadGoogleMaps = async () => {
       try {
         if (window.google && window.google.maps && window.google.maps.places) {
@@ -29,7 +30,7 @@ const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder 
         }
 
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${HARDCODED_API_KEY}&libraries=places&callback=initAutocomplete`;
         script.async = true;
         script.defer = true;
 
@@ -45,7 +46,7 @@ const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder 
     };
 
     loadGoogleMaps();
-  }, [apiKey]);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded || !inputRef.current || !window.google) return;
@@ -82,26 +83,6 @@ const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder 
       }
     };
   }, [isLoaded, onChange, onPlaceSelect]);
-
-  if (!apiKey) {
-    return (
-      <div>
-        <Label htmlFor="address">{label}</Label>
-        <Input
-          id="address"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-        />
-        <Alert className="mt-2">
-          <MapPin className="h-4 w-4" />
-          <AlertDescription>
-            Add your Google Places API key to enable address autocomplete
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
 
   if (error) {
     return (
