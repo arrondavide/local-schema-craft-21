@@ -11,6 +11,137 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check, Eye, Copy } from 'lucide-react';
 
+// Google Places Autocomplete Component
+const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder = "Enter address", label = "Address", apiKey }) => {
+  const inputRef = React.useRef(null);
+  const autocompleteRef = React.useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!apiKey) return;
+
+    const loadGoogleMaps = async () => {
+      try {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          setIsLoaded(true);
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
+        script.async = true;
+        script.defer = true;
+
+        window.initAutocomplete = () => {
+          setIsLoaded(true);
+        };
+
+        document.head.appendChild(script);
+        script.onerror = () => setError('Failed to load Google Maps API');
+      } catch (err) {
+        setError('Error loading Google Maps API');
+      }
+    };
+
+    loadGoogleMaps();
+  }, [apiKey]);
+
+  useEffect(() => {
+    if (!isLoaded || !inputRef.current || !window.google) return;
+
+    try {
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
+        types: ['address'],
+        fields: ['address_components', 'formatted_address', 'geometry', 'name', 'place_id']
+      });
+
+      autocompleteRef.current.addListener('place_changed', () => {
+        const place = autocompleteRef.current?.getPlace();
+        
+        // Check if place has complete data
+        if (place && place.formatted_address && place.address_components && place.geometry) {
+          console.log('Complete place data received:', place);
+          onChange(place.formatted_address);
+          onPlaceSelect(place);
+        } else if (place && place.formatted_address) {
+          // If we only have formatted address, still update the field but don't auto-fill others
+          console.log('Partial place data received:', place);
+          onChange(place.formatted_address);
+        } else {
+          console.log('Incomplete place data, waiting for more...');
+        }
+      });
+    } catch (err) {
+      setError('Error initializing autocomplete');
+    }
+
+    return () => {
+      if (autocompleteRef.current && window.google) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, [isLoaded, onChange, onPlaceSelect]);
+
+  if (!apiKey) {
+    return (
+      <div>
+        <Label htmlFor="address">{label}</Label>
+        <Input
+          id="address"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+        />
+        <Alert className="mt-2">
+          <MapPin className="h-4 w-4" />
+          <AlertDescription>
+            Add your Google Places API key to enable address autocomplete
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <Label htmlFor="address">{label}</Label>
+        <Input
+          id="address"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+        />
+        <Alert className="mt-2">
+          <AlertDescription className="text-destructive">
+            {error}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Label htmlFor="address">{label}</Label>
+      <Input
+        ref={inputRef}
+        id="address"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={isLoaded ? "Start typing an address..." : placeholder}
+        disabled={!isLoaded}
+      />
+      {!isLoaded && (
+        <div className="text-sm text-muted-foreground mt-1">
+          Loading Google Places...
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BusinessForm = () => {
   const [currentTab, setCurrentTab] = useState('basic');
   const [newBusinessType, setNewBusinessType] = useState('');
@@ -140,6 +271,130 @@ const BusinessForm = () => {
 
   const updateField = (field, value) => {
     setData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const extractAddressComponents = (place) => {
+    console.log('Extracting from place:', place);
+    
+    if (!place.address_components) {
+      console.log('No address_components found');
+      return { city: '', region: '', country: '', postalCode: '', latitude: '', longitude: '', areaServed: '' };
+    }
+
+    const components = place.address_components;
+    const geometry = place.geometry;
+    
+    let city = '';
+    let region = '';
+    let country = '';
+    let postalCode = '';
+    let latitude = '';
+    let longitude = '';
+    let areaServed = '';
+
+    console.log('Address components:', components);
+
+    components.forEach((component) => {
+      const types = component.types;
+      console.log('Component:', component.long_name, 'Types:', types);
+      
+      // City - try multiple approaches
+      if (types.includes('locality')) {
+        city = component.long_name;
+        areaServed = component.long_name;
+        console.log('Found city (locality):', city);
+      } else if (types.includes('sublocality_level_1') && !city) {
+        city = component.long_name;
+        areaServed = component.long_name;
+        console.log('Found city (sublocality_level_1):', city);
+      } else if (types.includes('administrative_area_level_2') && !city) {
+        city = component.long_name;
+        areaServed = component.long_name;
+        console.log('Found city (administrative_area_level_2):', city);
+      }
+      
+      // Region/State
+      if (types.includes('administrative_area_level_1')) {
+        region = component.long_name;
+        console.log('Found region:', region);
+      }
+      
+      // Country
+      if (types.includes('country')) {
+        const countryByCode = countries.find(c => c.code === component.short_name);
+        const countryByName = countries.find(c => c.name.toLowerCase() === component.long_name.toLowerCase());
+        
+        if (countryByCode) {
+          country = countryByCode.code;
+          console.log('Found country by code:', country);
+        } else if (countryByName) {
+          country = countryByName.code;
+          console.log('Found country by name:', country);
+        } else {
+          country = component.short_name;
+          console.log('Using country short_name:', country);
+        }
+      }
+      
+      // Postal Code
+      if (types.includes('postal_code')) {
+        postalCode = component.long_name;
+        console.log('Found postal code:', postalCode);
+      }
+    });
+
+    // Extract coordinates with better error handling
+    if (geometry && geometry.location) {
+      try {
+        if (typeof geometry.location.lat === 'function') {
+          latitude = geometry.location.lat().toString();
+          longitude = geometry.location.lng().toString();
+        } else {
+          latitude = geometry.location.lat.toString();
+          longitude = geometry.location.lng.toString();
+        }
+        console.log('Found coordinates:', latitude, longitude);
+      } catch (err) {
+        console.error('Error extracting coordinates:', err);
+        latitude = '';
+        longitude = '';
+      }
+    } else {
+      console.log('No geometry data found');
+    }
+
+    const result = { city, region, country, postalCode, latitude, longitude, areaServed };
+    console.log('Extracted data:', result);
+    
+    return result;
+  };
+
+  const handlePlaceSelect = (place) => {
+    console.log('Place selected, processing...', place);
+    
+    // Add a small delay to ensure all place data is loaded
+    setTimeout(() => {
+      const extracted = extractAddressComponents(place);
+      
+      console.log('Updating form with extracted data:', extracted);
+      
+      setData(prev => {
+        const updated = {
+          ...prev,
+          // Only update if we got meaningful data, otherwise keep existing values
+          city: extracted.city || prev.city,
+          region: extracted.region || prev.region,
+          country: extracted.country || prev.country,
+          postalCode: extracted.postalCode || prev.postalCode,
+          latitude: extracted.latitude || prev.latitude,
+          longitude: extracted.longitude || prev.longitude,
+          areaServed: extracted.areaServed || prev.areaServed
+        };
+        
+        console.log('Form data updated:', updated);
+        return updated;
+      });
+    }, 100); // Small delay to ensure Google Places has finished processing
   };
 
   const addBusinessType = (type) => {
