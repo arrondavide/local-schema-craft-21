@@ -182,6 +182,11 @@ const GooglePlacesAutocomplete = ({
       if (autocompleteRef.current && window.google) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
+      
+      // Clean up document event listener
+      if (inputRef.current?._cleanup) {
+        inputRef.current._cleanup();
+      }
     };
   }, [isLoaded, onChange, onPlaceSelect]);
 
