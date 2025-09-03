@@ -40,7 +40,39 @@ const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder 
 
         document.head.appendChild(script);
         script.onerror = () => setError('Failed to load Google Maps API');
-      } catch (err) {
+        // Also add a listener for when input loses focus (blur)
+      // This catches cases where place_changed didn't get complete data
+      const blurListener = inputRef.current.addEventListener('blur', () => {
+        // Small delay to allow place_changed to process first
+        setTimeout(() => {
+          const place = autocompleteRef.current?.getPlace();
+          console.log('Input blur - checking place data:', place);
+          
+          if (place && place.address_components && place.geometry && !place._processed) {
+            console.log('Found complete data on blur that was missed earlier');
+            place._processed = true; // Mark as processed to avoid double processing
+            onPlaceSelect(place);
+          }
+        }, 100);
+      });
+
+      // Add listener for when user selects from dropdown with Enter key
+      inputRef.current.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          setTimeout(() => {
+            const place = autocompleteRef.current?.getPlace();
+            console.log('Enter key pressed - checking place data:', place);
+            
+            if (place && place.address_components && place.geometry && !place._processed) {
+              console.log('Found complete data on Enter that was missed earlier');
+              place._processed = true;
+              onPlaceSelect(place);
+            }
+          }, 200);
+        }
+      });
+
+    } catch (err) {
         setError('Error loading Google Maps API');
       }
     };
