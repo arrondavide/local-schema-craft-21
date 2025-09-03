@@ -120,6 +120,7 @@ const BusinessForm = () => {
     phone: '',
     phoneCode: '+44',
     email: '',
+    qualifications: [], // New field for medical qualifications
     street: '',
     city: '',
     region: '',
@@ -130,6 +131,7 @@ const BusinessForm = () => {
     googlePlacesApiKey: '',
     ratingValue: '',
     reviewCount: '',
+    reviewsUrl: '', // New field for reviews link
     instagram: '',
     facebook: '',
     tiktok: '',
@@ -316,6 +318,40 @@ const BusinessForm = () => {
     if (newKnowsAbout.trim()) {
       addKnowsAbout(newKnowsAbout);
       setNewKnowsAbout('');
+    }
+  };
+
+  // Qualifications management
+  const [newQualification, setNewQualification] = useState('');
+  
+  const commonQualifications = [
+    'MBBS', 'MD', 'MRCS', 'FRCS', 'DM', 'MCh', 'MS', 'FCPS', 'DNB', 'DOMS',
+    'DCH', 'DGO', 'DA', 'DTCD', 'DMRD', 'MD (General Medicine)', 'MD (Pediatrics)',
+    'MD (Dermatology)', 'MD (Psychiatry)', 'MD (Radiology)', 'MD (Anesthesia)',
+    'MS (General Surgery)', 'MS (Orthopedics)', 'MS (ENT)', 'MS (Ophthalmology)',
+    'BDS', 'MDS', 'BPT', 'MPT', 'BAMS', 'BHMS', 'BUMS'
+  ];
+
+  const addQualification = (qualification) => {
+    if (!data.qualifications.includes(qualification)) {
+      setData(prev => ({
+        ...prev,
+        qualifications: [...prev.qualifications, qualification]
+      }));
+    }
+  };
+
+  const removeQualification = (qualification) => {
+    setData(prev => ({
+      ...prev,
+      qualifications: prev.qualifications.filter(q => q !== qualification)
+    }));
+  };
+
+  const addCustomQualification = () => {
+    if (newQualification.trim()) {
+      addQualification(newQualification.trim());
+      setNewQualification('');
     }
   };
 
@@ -564,6 +600,15 @@ const BusinessForm = () => {
       schema.knowsAbout = data.knowsAbout;
     }
     
+    // Medical Qualifications
+    if (data.qualifications && data.qualifications.length > 0) {
+      schema.hasCredential = data.qualifications.map(qualification => ({
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "degree",
+        name: qualification
+      }));
+    }
+    
     // Services/Offers
     if (data.services && data.services.length > 0) {
       schema.makesOffer = {
@@ -610,6 +655,11 @@ const BusinessForm = () => {
         ratingValue: data.ratingValue,
         reviewCount: data.reviewCount
       };
+      
+      // Add reviews URL if provided
+      if (data.reviewsUrl) {
+        schema.aggregateRating.url = data.reviewsUrl;
+      }
     }
     
     // Branches
@@ -883,6 +933,65 @@ const BusinessForm = () => {
                         <Button 
                           type="button" 
                           onClick={addCustomKnowsAbout}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Medical Qualifications</Label>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border rounded-md bg-gray-50">
+                      {data.qualifications.length > 0 ? (
+                        data.qualifications.map((qualification) => (
+                          <Badge key={qualification} variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                            {qualification}
+                            <button
+                              onClick={() => removeQualification(qualification)}
+                              className="ml-1 hover:bg-red-200 rounded-full p-0.5"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-gray-500 text-sm">No qualifications added</span>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Select onValueChange={addQualification}>
+                        <SelectTrigger className="bg-white border-gray-200">
+                          <SelectValue placeholder="Select qualification" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          {commonQualifications
+                            .filter(qualification => !data.qualifications.includes(qualification))
+                            .map((qualification) => (
+                              <SelectItem key={qualification} value={qualification} className="hover:bg-gray-100">
+                                {qualification}
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add custom qualification"
+                          value={newQualification}
+                          onChange={(e) => setNewQualification(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addCustomQualification()}
+                          className="flex-1"
+                        />
+                        <Button 
+                          type="button" 
+                          onClick={addCustomQualification}
                           variant="outline"
                           size="sm"
                         >
@@ -1403,6 +1512,19 @@ const BusinessForm = () => {
                       type="number"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="reviewsUrl">Reviews Page URL</Label>
+                  <Input
+                    id="reviewsUrl"
+                    value={data.reviewsUrl}
+                    onChange={(e) => updateField('reviewsUrl', e.target.value)}
+                    placeholder="https://g.page/your-business/review or https://www.yelp.com/biz/your-business"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Link to your Google Reviews, Yelp, or other review platform where patients can leave reviews
+                  </p>
                 </div>
               </CardContent>
             </Card>
