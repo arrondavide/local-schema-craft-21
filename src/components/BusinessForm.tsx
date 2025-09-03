@@ -11,149 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check, Eye, Copy } from 'lucide-react';
 
-// Google Places Autocomplete Component
-const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder = "Enter address", label = "Address", apiKey = 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ' }) => {
-  const inputRef = React.useRef(null);
-  const autocompleteRef = React.useRef(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState('');
-
-  // Always use hardcoded API key
-  const HARDCODED_API_KEY = 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ';
-
-  useEffect(() => {
-    const loadGoogleMaps = async () => {
-      try {
-        if (window.google && window.google.maps && window.google.maps.places) {
-          setIsLoaded(true);
-          return;
-        }
-
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${HARDCODED_API_KEY}&libraries=places&callback=initAutocomplete`;
-        script.async = true;
-        script.defer = true;
-
-        window.initAutocomplete = () => {
-          setIsLoaded(true);
-        };
-
-        document.head.appendChild(script);
-        script.onerror = () => setError('Failed to load Google Maps API');
-        // Also add a listener for when input loses focus (blur)
-      // This catches cases where place_changed didn't get complete data
-      const blurListener = inputRef.current.addEventListener('blur', () => {
-        // Small delay to allow place_changed to process first
-        setTimeout(() => {
-          const place = autocompleteRef.current?.getPlace();
-          console.log('Input blur - checking place data:', place);
-          
-          if (place && place.address_components && place.geometry && !place._processed) {
-            console.log('Found complete data on blur that was missed earlier');
-            place._processed = true; // Mark as processed to avoid double processing
-            onPlaceSelect(place);
-          }
-        }, 100);
-      });
-
-      // Add listener for when user selects from dropdown with Enter key
-      inputRef.current.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          setTimeout(() => {
-            const place = autocompleteRef.current?.getPlace();
-            console.log('Enter key pressed - checking place data:', place);
-            
-            if (place && place.address_components && place.geometry && !place._processed) {
-              console.log('Found complete data on Enter that was missed earlier');
-              place._processed = true;
-              onPlaceSelect(place);
-            }
-          }, 200);
-        }
-      });
-
-    } catch (err) {
-        setError('Error loading Google Maps API');
-      }
-    };
-
-    loadGoogleMaps();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded || !inputRef.current || !window.google) return;
-
-    try {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address'],
-        fields: ['address_components', 'formatted_address', 'geometry', 'name', 'place_id']
-      });
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current?.getPlace();
-        
-        // Check if place has complete data
-        if (place && place.formatted_address && place.address_components && place.geometry) {
-          console.log('Complete place data received:', place);
-          onChange(place.formatted_address);
-          onPlaceSelect(place);
-        } else if (place && place.formatted_address) {
-          // If we only have formatted address, still update the field but don't auto-fill others
-          console.log('Partial place data received:', place);
-          onChange(place.formatted_address);
-        } else {
-          console.log('Incomplete place data, waiting for more...');
-        }
-      });
-    } catch (err) {
-      setError('Error initializing autocomplete');
-    }
-
-    return () => {
-      if (autocompleteRef.current && window.google) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-    };
-  }, [isLoaded, onChange, onPlaceSelect]);
-
-  if (error) {
-    return (
-      <div>
-        <Label htmlFor="address">{label}</Label>
-        <Input
-          id="address"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-        />
-        <Alert className="mt-2">
-          <AlertDescription className="text-destructive">
-            {error}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <Label htmlFor="address">{label}</Label>
-      <Input
-        ref={inputRef}
-        id="address"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={isLoaded ? "Start typing an address..." : placeholder}
-        disabled={!isLoaded}
-      />
-      {!isLoaded && (
-        <div className="text-sm text-muted-foreground mt-1">
-          Loading Google Places...
-        </div>
-      )}
-    </div>
-  );
-};
+import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
 const BusinessForm = () => {
   const [currentTab, setCurrentTab] = useState('basic');
@@ -595,7 +453,7 @@ const BusinessForm = () => {
   };
 
   const generateSchema = () => {
-    let schema = {
+    let schema: any = {
       "@context": "https://schema.org"
     };
 
@@ -662,7 +520,7 @@ const BusinessForm = () => {
     
     // Address
     if (data.street || data.city) {
-      const addressData = {
+      const addressData: any = {
         "@type": "PostalAddress"
       };
       
@@ -751,7 +609,7 @@ const BusinessForm = () => {
     
     // Branches
     if (data.branches && data.branches.length > 0 && schema.url) {
-      const orgData = {
+      const orgData: any = {
         "@type": "Organization",
         "@id": `${schema.url}/#org`,
         name: data.businessName,
@@ -763,8 +621,8 @@ const BusinessForm = () => {
         orgData.sameAs = socialLinks;
       }
       
-      const branchData = data.branches.map((branch) => {
-        const branchSchema = {
+      const branchData = data.branches.map((branch: any) => {
+        const branchSchema: any = {
           "@type": "LocalBusiness",
           "@id": `${schema.url}/#branch-${branch.name.toLowerCase().replace(/\s+/g, '-')}`,
           branchOf: {
@@ -776,7 +634,7 @@ const BusinessForm = () => {
         };
         
         if (branch.street || branch.city) {
-          const branchAddress = {
+          const branchAddress: any = {
             "@type": "PostalAddress"
           };
           

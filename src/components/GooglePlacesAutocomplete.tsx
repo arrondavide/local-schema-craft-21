@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MapPin } from 'lucide-react';
+import '../types/google-maps';
 
 const GooglePlacesAutocomplete = ({ 
   value, 
@@ -48,57 +49,24 @@ const GooglePlacesAutocomplete = ({
     loadGoogleMaps();
   }, []);
 
-  // Enhanced place processing with retry logic
-  const processPlaceWithRetry = (place, retryCount = 0) => {
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 200;
-
-    console.log(`Processing place (attempt ${retryCount + 1}):`, {
-      place_id: place?.place_id,
-      formatted_address: place?.formatted_address,
-      hasComponents: !!place?.address_components,
-      hasGeometry: !!place?.geometry,
-      componentCount: place?.address_components?.length
-    });
-
-    // Check if we have complete data
-    const hasCompleteData = place && 
-      place.place_id && 
-      place.formatted_address && 
-      place.address_components && 
-      place.address_components.length > 0 && 
-      place.geometry &&
-      place.geometry.location;
-
-    if (hasCompleteData) {
-      // Avoid processing the same place multiple times
-      if (lastProcessedPlaceId.current === place.place_id) {
-        console.log('Place already processed, skipping');
-        return;
-      }
-      
-      lastProcessedPlaceId.current = place.place_id;
-      console.log('Complete place data found, processing...');
-      onChange(place.formatted_address);
-      onPlaceSelect(place);
+  // Enhanced place processing - always use Places Details API for complete data
+  const processPlaceWithRetry = (place: any) => {
+    if (!place?.place_id) {
+      console.log('No place_id found');
       return;
     }
 
-    // If incomplete data and we haven't exceeded retry limit
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Incomplete data, retrying in ${RETRY_DELAY}ms...`);
-      setTimeout(() => {
-        const freshPlace = autocompleteRef.current?.getPlace();
-        if (freshPlace && freshPlace.place_id === place?.place_id) {
-          processPlaceWithRetry(freshPlace, retryCount + 1);
-        }
-      }, RETRY_DELAY * (retryCount + 1)); // Increasing delay
+    // Avoid processing the same place multiple times
+    if (lastProcessedPlaceId.current === place.place_id) {
+      console.log('Place already processed, skipping');
       return;
     }
 
-    // Fallback: use Places Details API for more complete data
-    if (place?.place_id && window.google?.maps?.places?.PlacesService) {
-      console.log('Using Places Details API as fallback...');
+    console.log('Processing place:', place.place_id);
+    lastProcessedPlaceId.current = place.place_id;
+
+    // Always use Places Details API to ensure we get complete data
+    if (window.google?.maps?.places?.PlacesService) {
       const service = new window.google.maps.places.PlacesService(document.createElement('div'));
       
       service.getDetails({
@@ -106,27 +74,21 @@ const GooglePlacesAutocomplete = ({
         fields: ['address_components', 'formatted_address', 'geometry', 'name', 'place_id']
       }, (detailedPlace, status) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && detailedPlace) {
-          console.log('Got detailed place data:', detailedPlace);
-          lastProcessedPlaceId.current = detailedPlace.place_id;
-          onChange(detailedPlace.formatted_address);
+          console.log('Got complete place data:', detailedPlace);
+          onChange(detailedPlace.formatted_address || '');
           onPlaceSelect(detailedPlace);
         } else {
-          console.log('Places Details API failed, using partial data');
-          if (place?.formatted_address) {
-            onChange(place.formatted_address);
+          console.log('Places Details API failed, using basic data');
+          onChange(place.formatted_address || '');
+          if (place.address_components || place.geometry) {
+            onPlaceSelect(place);
           }
         }
       });
-      return;
-    }
-
-    // Final fallback: use whatever data we have
-    console.log('Using partial place data');
-    if (place?.formatted_address) {
-      onChange(place.formatted_address);
-      if (place.address_components || place.geometry) {
-        onPlaceSelect(place);
-      }
+    } else {
+      // Fallback if Places service not available
+      onChange(place.formatted_address || '');
+      onPlaceSelect(place);
     }
   };
 
