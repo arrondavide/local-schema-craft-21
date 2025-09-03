@@ -3,7 +3,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MapPin } from 'lucide-react';
-import '../types/google-maps';
+
+// Extend Window interface for Google Maps
+declare global {
+  interface Window {
+    google: any;
+    initAutocomplete: () => void;
+  }
+}
 
 const GooglePlacesAutocomplete = ({ 
   value, 
