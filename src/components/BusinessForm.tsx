@@ -614,17 +614,25 @@ const BusinessForm = () => {
       schema.makesOffer = {
         "@type": "OfferCatalog",
         name: "Clinic Services",
-        itemListElement: data.services.map(service => ({
-          "@type": "Offer",
-          name: service.name,
-          url: service.url,
-          priceCurrency: "AED",
-          priceSpecification: {
-            "@type": "PriceSpecification",
-            price: service.price
-          },
-          availability: "https://schema.org/InStock"
-        }))
+        itemListElement: data.services.map(service => {
+          const offer: any = {
+            "@type": "Offer",
+            name: service.name,
+            priceCurrency: "AED",
+            priceSpecification: {
+              "@type": "PriceSpecification",
+              price: service.price
+            },
+            availability: "https://schema.org/InStock"
+          };
+          
+          // Only include URL if it's provided and not empty
+          if (service.url && service.url.trim()) {
+            offer.url = service.url;
+          }
+          
+          return offer;
+        })
       };
     }
     
@@ -1390,11 +1398,11 @@ const BusinessForm = () => {
                           />
                         </div>
                         <div>
-                          <Label>Service URL</Label>
+                          <Label>Service URL (Optional)</Label>
                           <Input
                             value={service.url}
                             onChange={(e) => updateService(index, 'url', e.target.value)}
-                            placeholder="https://example.com/service"
+                            placeholder="https://example.com/service (leave empty if no specific page)"
                           />
                         </div>
                         <div className="flex items-end">
