@@ -11,127 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Plus, Trash2, Building2, MapPin, Clock, Share2, Star, ChevronLeft, ChevronRight, Check, Eye, Copy } from 'lucide-react';
 
-// Google Places Autocomplete Component
-const GooglePlacesAutocomplete = ({ value, onChange, onPlaceSelect, placeholder = "Enter address", label = "Address", apiKey }) => {
-  const inputRef = React.useRef(null);
-  const autocompleteRef = React.useRef(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!apiKey) return;
-
-    const loadGoogleMaps = async () => {
-      try {
-        if (window.google && window.google.maps && window.google.maps.places) {
-          setIsLoaded(true);
-          return;
-        }
-
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
-        script.async = true;
-        script.defer = true;
-
-        window.initAutocomplete = () => {
-          setIsLoaded(true);
-        };
-
-        document.head.appendChild(script);
-        script.onerror = () => setError('Failed to load Google Maps API');
-      } catch (err) {
-        setError('Error loading Google Maps API');
-      }
-    };
-
-    loadGoogleMaps();
-  }, [apiKey]);
-
-  useEffect(() => {
-    if (!isLoaded || !inputRef.current || !window.google) return;
-
-    try {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address']
-      });
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current?.getPlace();
-        if (place && place.formatted_address) {
-          onChange(place.formatted_address);
-          onPlaceSelect(place);
-        }
-      });
-    } catch (err) {
-      setError('Error initializing autocomplete');
-    }
-
-    return () => {
-      if (autocompleteRef.current && window.google) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-    };
-  }, [isLoaded, onChange, onPlaceSelect]);
-
-  if (!apiKey) {
-    return (
-      <div>
-        <Label htmlFor="address">{label}</Label>
-        <Input
-          id="address"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-        />
-        <Alert className="mt-2">
-          <MapPin className="h-4 w-4" />
-          <AlertDescription>
-            Add your Google Places API key to enable address autocomplete
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div>
-        <Label htmlFor="address">{label}</Label>
-        <Input
-          id="address"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-        />
-        <Alert className="mt-2">
-          <AlertDescription className="text-destructive">
-            {error}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <Label htmlFor="address">{label}</Label>
-      <Input
-        ref={inputRef}
-        id="address"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={isLoaded ? "Start typing an address..." : placeholder}
-        disabled={!isLoaded}
-      />
-      {!isLoaded && (
-        <div className="text-sm text-muted-foreground mt-1">
-          Loading Google Places...
-        </div>
-      )}
-    </div>
-  );
-};
-
 const BusinessForm = () => {
   const [currentTab, setCurrentTab] = useState('basic');
   const [newBusinessType, setNewBusinessType] = useState('');
@@ -213,91 +92,7 @@ const BusinessForm = () => {
     { code: 'QA', name: 'Qatar' },
     { code: 'KW', name: 'Kuwait' },
     { code: 'BH', name: 'Bahrain' },
-    { code: 'OM', name: 'Oman' },
-    { code: 'CA', name: 'Canada' },
-    { code: 'AU', name: 'Australia' },
-    { code: 'SG', name: 'Singapore' },
-    { code: 'MY', name: 'Malaysia' },
-    { code: 'TH', name: 'Thailand' },
-    { code: 'PH', name: 'Philippines' },
-    { code: 'ID', name: 'Indonesia' },
-    { code: 'VN', name: 'Vietnam' },
-    { code: 'KR', name: 'South Korea' },
-    { code: 'JP', name: 'Japan' },
-    { code: 'CN', name: 'China' },
-    { code: 'HK', name: 'Hong Kong' },
-    { code: 'TW', name: 'Taiwan' },
-    { code: 'NZ', name: 'New Zealand' },
-    { code: 'ZA', name: 'South Africa' },
-    { code: 'EG', name: 'Egypt' },
-    { code: 'TR', name: 'Turkey' },
-    { code: 'IL', name: 'Israel' },
-    { code: 'JO', name: 'Jordan' },
-    { code: 'LB', name: 'Lebanon' },
-    { code: 'MX', name: 'Mexico' },
-    { code: 'BR', name: 'Brazil' },
-    { code: 'AR', name: 'Argentina' },
-    { code: 'CL', name: 'Chile' },
-    { code: 'CO', name: 'Colombia' },
-    { code: 'PE', name: 'Peru' },
-    { code: 'IT', name: 'Italy' },
-    { code: 'ES', name: 'Spain' },
-    { code: 'PT', name: 'Portugal' },
-    { code: 'NL', name: 'Netherlands' },
-    { code: 'BE', name: 'Belgium' },
-    { code: 'CH', name: 'Switzerland' },
-    { code: 'AT', name: 'Austria' },
-    { code: 'DK', name: 'Denmark' },
-    { code: 'SE', name: 'Sweden' },
-    { code: 'NO', name: 'Norway' },
-    { code: 'FI', name: 'Finland' },
-    { code: 'PL', name: 'Poland' },
-    { code: 'CZ', name: 'Czech Republic' },
-    { code: 'HU', name: 'Hungary' },
-    { code: 'RO', name: 'Romania' },
-    { code: 'BG', name: 'Bulgaria' },
-    { code: 'HR', name: 'Croatia' },
-    { code: 'SI', name: 'Slovenia' },
-    { code: 'SK', name: 'Slovakia' },
-    { code: 'EE', name: 'Estonia' },
-    { code: 'LV', name: 'Latvia' },
-    { code: 'LT', name: 'Lithuania' },
-    { code: 'IE', name: 'Ireland' },
-    { code: 'IS', name: 'Iceland' },
-    { code: 'MT', name: 'Malta' },
-    { code: 'CY', name: 'Cyprus' },
-    { code: 'LU', name: 'Luxembourg' },
-    { code: 'MC', name: 'Monaco' },
-    { code: 'AD', name: 'Andorra' },
-    { code: 'SM', name: 'San Marino' },
-    { code: 'VA', name: 'Vatican City' },
-    { code: 'LI', name: 'Liechtenstein' },
-    { code: 'RU', name: 'Russia' },
-    { code: 'UA', name: 'Ukraine' },
-    { code: 'BY', name: 'Belarus' },
-    { code: 'MD', name: 'Moldova' },
-    { code: 'GE', name: 'Georgia' },
-    { code: 'AM', name: 'Armenia' },
-    { code: 'AZ', name: 'Azerbaijan' },
-    { code: 'KZ', name: 'Kazakhstan' },
-    { code: 'UZ', name: 'Uzbekistan' },
-    { code: 'TM', name: 'Turkmenistan' },
-    { code: 'KG', name: 'Kyrgyzstan' },
-    { code: 'TJ', name: 'Tajikistan' },
-    { code: 'AF', name: 'Afghanistan' },
-    { code: 'PK', name: 'Pakistan' },
-    { code: 'BD', name: 'Bangladesh' },
-    { code: 'LK', name: 'Sri Lanka' },
-    { code: 'MV', name: 'Maldives' },
-    { code: 'BT', name: 'Bhutan' },
-    { code: 'NP', name: 'Nepal' },
-    { code: 'MM', name: 'Myanmar' },
-    { code: 'LA', name: 'Laos' },
-    { code: 'KH', name: 'Cambodia' },
-    { code: 'BN', name: 'Brunei' },
-    { code: 'TL', name: 'Timor-Leste' },
-    { code: 'MN', name: 'Mongolia' },
-    { code: 'KP', name: 'North Korea' }
+    { code: 'OM', name: 'Oman' }
   ];
   
   const tabs = [
@@ -325,7 +120,7 @@ const BusinessForm = () => {
     country: '',
     latitude: '',
     longitude: '',
-    googlePlacesApiKey: 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ',
+    googlePlacesApiKey: '',
     ratingValue: '',
     reviewCount: '',
     instagram: '',
@@ -334,7 +129,7 @@ const BusinessForm = () => {
     linkedin: '',
     currency: 'GBP',
     areaServed: '',
-    priceRange: '$',
+    priceRange: '$$',
     acceptsReservations: true,
     paymentMethods: ['Cash', 'Credit Card', 'Debit Card'],
     knowsAbout: [],
@@ -345,74 +140,6 @@ const BusinessForm = () => {
 
   const updateField = (field, value) => {
     setData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const extractAddressComponents = (place) => {
-    const components = place.address_components || [];
-    const geometry = place.geometry;
-    
-    let city = '';
-    let region = '';
-    let country = '';
-    let postalCode = '';
-    let latitude = '';
-    let longitude = '';
-    let areaServed = '';
-
-    components.forEach((component) => {
-      const types = component.types;
-      
-      if (types.includes('locality')) {
-        city = component.long_name;
-        areaServed = component.long_name; // Set area served same as city
-      } else if (types.includes('administrative_area_level_2') && !city) {
-        city = component.long_name;
-        areaServed = component.long_name;
-      } else if (types.includes('administrative_area_level_1')) {
-        region = component.long_name;
-      } else if (types.includes('country')) {
-        // Try to match by short_name first (country code), then by long_name
-        const countryByCode = countries.find(c => c.code === component.short_name);
-        const countryByName = countries.find(c => c.name.toLowerCase() === component.long_name.toLowerCase());
-        
-        if (countryByCode) {
-          country = countryByCode.code;
-        } else if (countryByName) {
-          country = countryByName.code;
-        } else {
-          // Fallback to the short_name (usually the country code)
-          country = component.short_name;
-        }
-      } else if (types.includes('postal_code')) {
-        postalCode = component.long_name;
-      }
-    });
-
-    // Extract coordinates
-    if (geometry && geometry.location) {
-      latitude = geometry.location.lat().toString();
-      longitude = geometry.location.lng().toString();
-    }
-
-    return { city, region, country, postalCode, latitude, longitude, areaServed };
-  };
-
-  const handlePlaceSelect = (place) => {
-    console.log('Selected place:', place); // Debug log
-    const { city, region, country, postalCode, latitude, longitude, areaServed } = extractAddressComponents(place);
-    
-    console.log('Extracted country:', country); // Debug log
-    
-    setData(prev => ({
-      ...prev,
-      city: city || prev.city,
-      region: region || prev.region,
-      country: country || prev.country,
-      postalCode: postalCode || prev.postalCode,
-      latitude: latitude || prev.latitude,
-      longitude: longitude || prev.longitude,
-      areaServed: areaServed || prev.areaServed
-    }));
   };
 
   const addBusinessType = (type) => {
@@ -715,7 +442,7 @@ const BusinessForm = () => {
           "@type": "Offer",
           name: service.name,
           url: service.url,
-          priceCurrency: data.currency,
+          priceCurrency: "AED",
           priceSpecification: {
             "@type": "PriceSpecification",
             price: service.price
@@ -1124,14 +851,49 @@ const BusinessForm = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="acceptsReservations"
-                    checked={data.acceptsReservations}
-                    onChange={(e) => updateField('acceptsReservations', e.target.checked)}
-                  />
-                  <Label htmlFor="acceptsReservations">Accepts Reservations</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="priceRange">Price Range</Label>
+                    <Select value={data.priceRange} onValueChange={(value) => updateField('priceRange', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="$">$ (Budget)</SelectItem>
+                        <SelectItem value="$$">$$ (Moderate)</SelectItem>
+                        <SelectItem value="$$$">$$$ (Expensive)</SelectItem>
+                        <SelectItem value="$$$$">$$$$ (Very Expensive)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select value={data.currency} onValueChange={(value) => updateField('currency', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="AED">AED (د.إ)</SelectItem>
+                        <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                        <SelectItem value="QAR">QAR (ر.ق)</SelectItem>
+                        <SelectItem value="KWD">KWD (د.ك)</SelectItem>
+                        <SelectItem value="BHD">BHD (.د.ب)</SelectItem>
+                        <SelectItem value="OMR">OMR (ر.ع.)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="acceptsReservations"
+                      checked={data.acceptsReservations}
+                      onChange={(e) => updateField('acceptsReservations', e.target.checked)}
+                    />
+                    <Label htmlFor="acceptsReservations">Accepts Reservations</Label>
+                  </div>
                 </div>
 
                 <div>
@@ -1198,35 +960,32 @@ const BusinessForm = () => {
                       id="city"
                       value={data.city}
                       onChange={(e) => updateField('city', e.target.value)}
-                      placeholder="Dubai"
-                      required
+                      placeholder="London"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="region">State/Region *</Label>
+                    <Label htmlFor="region">State/Region</Label>
                     <Input
                       id="region"
                       value={data.region}
                       onChange={(e) => updateField('region', e.target.value)}
-                      placeholder="Dubai"
-                      required
+                      placeholder="England"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="postalCode">Postal Code *</Label>
+                    <Label htmlFor="postalCode">Postal Code</Label>
                     <Input
                       id="postalCode"
                       value={data.postalCode}
                       onChange={(e) => updateField('postalCode', e.target.value)}
-                      placeholder="00000"
-                      required
+                      placeholder="SW1A 1AA"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="country">Country *</Label>
-                  <Select value={data.country} onValueChange={(value) => updateField('country', value)} required>
+                  <Label htmlFor="country">Country</Label>
+                  <Select value={data.country} onValueChange={(value) => updateField('country', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a country" />
                     </SelectTrigger>
@@ -1242,35 +1001,32 @@ const BusinessForm = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="latitude">Latitude *</Label>
+                    <Label htmlFor="latitude">Latitude</Label>
                     <Input
                       id="latitude"
                       value={data.latitude}
                       onChange={(e) => updateField('latitude', e.target.value)}
-                      placeholder="25.2048"
-                      required
+                      placeholder="51.5074"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="longitude">Longitude *</Label>
+                    <Label htmlFor="longitude">Longitude</Label>
                     <Input
                       id="longitude"
                       value={data.longitude}
                       onChange={(e) => updateField('longitude', e.target.value)}
-                      placeholder="55.2708"
-                      required
+                      placeholder="-0.1278"
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <Label htmlFor="areaServed">Area Served *</Label>
+                  <Label htmlFor="areaServed">Area Served</Label>
                   <Input
                     id="areaServed"
                     value={data.areaServed}
                     onChange={(e) => updateField('areaServed', e.target.value)}
-                    placeholder="Dubai"
-                    required
+                    placeholder="London"
                   />
                 </div>
               </CardContent>
@@ -1373,26 +1129,6 @@ const BusinessForm = () => {
                   <CardTitle>Services & Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="currency">Currency for Services</Label>
-                    <Select value={data.currency} onValueChange={(value) => updateField('currency', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AED">AED (د.إ)</SelectItem>
-                        <SelectItem value="USD">USD ($)</SelectItem>
-                        <SelectItem value="GBP">GBP (£)</SelectItem>
-                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                        <SelectItem value="SAR">SAR (ر.س)</SelectItem>
-                        <SelectItem value="QAR">QAR (ر.ق)</SelectItem>
-                        <SelectItem value="KWD">KWD (د.ك)</SelectItem>
-                        <SelectItem value="BHD">BHD (.د.ب)</SelectItem>
-                        <SelectItem value="OMR">OMR (ر.ع.)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   {data.services.map((service, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1405,7 +1141,7 @@ const BusinessForm = () => {
                           />
                         </div>
                         <div>
-                          <Label>Price</Label>
+                          <Label>Price ({data.currency})</Label>
                           <Input
                             value={service.price}
                             onChange={(e) => updateService(index, 'price', e.target.value)}
