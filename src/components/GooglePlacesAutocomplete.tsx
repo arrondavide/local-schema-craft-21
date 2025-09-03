@@ -100,7 +100,7 @@ const GooglePlacesAutocomplete = ({
   };
 
   useEffect(() => {
-    if (!isLoaded || !inputRef.current || !window.google) return;
+    if (!isLoaded || !inputRef.current || !window.google || autocompleteRef.current) return;
 
     try {
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
