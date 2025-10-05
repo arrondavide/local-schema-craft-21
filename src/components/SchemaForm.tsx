@@ -17,7 +17,6 @@ interface SchemaFormProps {
 
 const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps) => {
   const [formData, setFormData] = useState<any>({});
-  const [searchMode, setSearchMode] = useState<'address' | 'business'>('address');
 
   const isPractitioner = entityType === 'practitioner';
   const isMultiple = locationType === 'multiple';
@@ -454,8 +453,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
             onPlaceSelect={(place) => handlePlaceSelect(place, parentField, index)}
             placeholder="10 Harley Street"
             enableBusinessSearch={true}
-            searchMode={searchMode}
-            hideSearchModeToggle={true}
           />
         </div>
 
@@ -719,31 +716,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <span className="text-sm font-medium">Search by:</span>
-                <button
-                  type="button"
-                  onClick={() => setSearchMode('address')}
-                  className={`px-3 py-1.5 text-sm rounded ${
-                    searchMode === 'address' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  Address
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSearchMode('business')}
-                  className={`px-3 py-1.5 text-sm rounded ${
-                    searchMode === 'business' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  Business
-                </button>
-              </div>
               {formData.worksFor?.map((location: any, index: number) => (
                 <div key={index} className="p-4 border rounded-lg space-y-4">
                   <div className="flex items-center justify-between">
@@ -770,32 +742,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
             <CardHeader>
               <CardTitle>Work Location</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <span className="text-sm font-medium">Search by:</span>
-                <button
-                  type="button"
-                  onClick={() => setSearchMode('address')}
-                  className={`px-3 py-1.5 text-sm rounded ${
-                    searchMode === 'address' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  Address
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSearchMode('business')}
-                  className={`px-3 py-1.5 text-sm rounded ${
-                    searchMode === 'business' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  Business
-                </button>
-              </div>
+            <CardContent>
               {renderLocationFields(formData.worksFor, 'worksFor')}
             </CardContent>
           </Card>
@@ -927,31 +874,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <span className="text-sm font-medium">Search by:</span>
-                  <button
-                    type="button"
-                    onClick={() => setSearchMode('address')}
-                    className={`px-3 py-1.5 text-sm rounded ${
-                      searchMode === 'address' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    Address
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSearchMode('business')}
-                    className={`px-3 py-1.5 text-sm rounded ${
-                      searchMode === 'business' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    Business
-                  </button>
-                </div>
                 {formData.departments?.map((dept: any, index: number) => (
                   <div key={index} className="p-4 border rounded-lg space-y-4">
                     <div className="flex items-center justify-between">

@@ -19,19 +19,14 @@ const GooglePlacesAutocomplete = ({
   placeholder = "Enter address", 
   label = "Address", 
   apiKey = 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ',
-  enableBusinessSearch = false,
-  searchMode = 'address',
-  hideSearchModeToggle = false
+  enableBusinessSearch = false 
 }) => {
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState('');
-  const [internalSearchMode, setInternalSearchMode] = useState(searchMode);
+  const [searchMode, setSearchMode] = useState(enableBusinessSearch ? 'business' : 'address');
   const lastProcessedPlaceId = useRef(null);
-
-  // Use external searchMode if provided, otherwise use internal
-  const activeSearchMode = searchMode || internalSearchMode;
 
   // Always use hardcoded API key
   const HARDCODED_API_KEY = 'AIzaSyB1SiZWgwVib7DCqkCHPFDySwewiOi4GgQ';
@@ -110,7 +105,7 @@ const GooglePlacesAutocomplete = ({
     if (!isLoaded || !inputRef.current || !window.google || autocompleteRef.current) return;
 
     try {
-      const searchTypes = activeSearchMode === 'business' ? ['establishment'] : ['address'];
+      const searchTypes = searchMode === 'business' ? ['establishment'] : ['address'];
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: searchTypes,
         fields: ['address_components', 'formatted_address', 'geometry', 'name', 'place_id', 'business_status', 'formatted_phone_number', 'website', 'rating', 'reviews', 'types', 'opening_hours']
@@ -165,7 +160,7 @@ const GooglePlacesAutocomplete = ({
         inputRef.current._cleanup();
       }
     };
-  }, [isLoaded, onChange, onPlaceSelect, activeSearchMode]);
+  }, [isLoaded, onChange, onPlaceSelect, searchMode]);
 
   if (error) {
     return (
@@ -188,45 +183,42 @@ const GooglePlacesAutocomplete = ({
 
   return (
     <div>
-      {!hideSearchModeToggle && (
-        <div className="flex items-center justify-between mb-2">
-          <Label htmlFor="address">{label}</Label>
-          {enableBusinessSearch && (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setInternalSearchMode('address')}
-                className={`px-2 py-1 text-xs rounded ${
-                  activeSearchMode === 'address' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                Address
-              </button>
-              <button
-                type="button"
-                onClick={() => setInternalSearchMode('business')}
-                className={`px-2 py-1 text-xs rounded ${
-                  activeSearchMode === 'business' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                Business
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-      {hideSearchModeToggle && <Label htmlFor="address">{label}</Label>}
+      <div className="flex items-center justify-between mb-2">
+        <Label htmlFor="address">{label}</Label>
+        {enableBusinessSearch && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSearchMode('address')}
+              className={`px-2 py-1 text-xs rounded ${
+                searchMode === 'address' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Address
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchMode('business')}
+              className={`px-2 py-1 text-xs rounded ${
+                searchMode === 'business' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Business
+            </button>
+          </div>
+        )}
+      </div>
       <Input
         ref={inputRef}
         id="address"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={isLoaded ? 
-          (activeSearchMode === 'business' ? "Search for business name..." : "Start typing an address...") 
+          (searchMode === 'business' ? "Search for business name..." : "Start typing an address...") 
           : placeholder
         }
         disabled={!isLoaded}
@@ -236,7 +228,7 @@ const GooglePlacesAutocomplete = ({
           Loading Google Places...
         </div>
       )}
-      {activeSearchMode === 'business' && (
+      {searchMode === 'business' && (
         <div className="text-xs text-muted-foreground mt-1">
           💡 Search by business name (e.g., "Rakesh Panchal Clinic") to auto-fill address and details
         </div>
