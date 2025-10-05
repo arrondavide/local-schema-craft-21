@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2 } from 'lucide-react';
 import { EntityType, LocationType } from '@/context/SchemaContext';
+import GooglePlacesAutocomplete from '@/components/GooglePlacesAutocomplete';
 
 interface SchemaFormProps {
   entityType: EntityType;
@@ -339,6 +340,70 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
     );
   };
 
+  const handlePlaceSelect = (place: any, parentField: string, index?: number) => {
+    console.log('Place selected:', place);
+    
+    if (!place.address_components) return;
+
+    const addressComponents: any = {};
+    place.address_components.forEach((component: any) => {
+      const types = component.types;
+      if (types.includes('street_number')) {
+        addressComponents.streetNumber = component.long_name;
+      }
+      if (types.includes('route')) {
+        addressComponents.route = component.long_name;
+      }
+      if (types.includes('locality')) {
+        addressComponents.city = component.long_name;
+      }
+      if (types.includes('administrative_area_level_1')) {
+        addressComponents.state = component.long_name;
+      }
+      if (types.includes('postal_code')) {
+        addressComponents.postalCode = component.long_name;
+      }
+      if (types.includes('country')) {
+        addressComponents.country = component.short_name;
+      }
+    });
+
+    const streetAddress = [addressComponents.streetNumber, addressComponents.route]
+      .filter(Boolean)
+      .join(' ');
+
+    const updateLoc = (field: string, value: any) => {
+      if (index !== undefined) {
+        updateArrayItemField(parentField, index, field, value);
+      } else {
+        updateNestedField(parentField, field, value);
+      }
+    };
+
+    updateLoc('streetAddress', streetAddress || '');
+    updateLoc('city', addressComponents.city || '');
+    updateLoc('region', addressComponents.state || '');
+    updateLoc('postalCode', addressComponents.postalCode || '');
+    updateLoc('country', addressComponents.country || '');
+
+    // Auto-fill geo coordinates
+    if (place.geometry?.location) {
+      updateLoc('latitude', place.geometry.location.lat().toString());
+      updateLoc('longitude', place.geometry.location.lng().toString());
+    }
+
+    // For business searches, auto-fill additional details
+    if (place.name) {
+      updateLoc('name', place.name);
+      if (place.formatted_phone_number) {
+        updateLoc('telephone', place.formatted_phone_number);
+      }
+      if (place.website) {
+        updateLoc('url', place.website);
+      }
+    }
+  };
+
   const renderLocationFields = (location: any, parentField: string, index?: number) => {
     const updateLoc = (field: string, value: any) => {
       if (index !== undefined) {
@@ -348,8 +413,25 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       }
     };
 
+    const addressValue = [
+      location?.streetAddress,
+      location?.city,
+      location?.region,
+      location?.postalCode,
+    ].filter(Boolean).join(', ');
+
     return (
       <div className="space-y-4">
+        {/* Google Places Autocomplete */}
+        <GooglePlacesAutocomplete
+          value={addressValue}
+          onChange={() => {}}
+          onPlaceSelect={(place) => handlePlaceSelect(place, parentField, index)}
+          placeholder="Search for business or address"
+          label="Address Lookup"
+          enableBusinessSearch={true}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Clinic Name *</Label>
@@ -630,6 +712,40 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                 <CardTitle>Location</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <GooglePlacesAutocomplete
+                  value={[formData.streetAddress, formData.city, formData.region, formData.postalCode].filter(Boolean).join(', ')}
+                  onChange={() => {}}
+                  onPlaceSelect={(place) => {
+                    if (!place.address_components) return;
+
+                    const addressComponents: any = {};
+                    place.address_components.forEach((component: any) => {
+                      const types = component.types;
+                      if (types.includes('street_number')) addressComponents.streetNumber = component.long_name;
+                      if (types.includes('route')) addressComponents.route = component.long_name;
+                      if (types.includes('locality')) addressComponents.city = component.long_name;
+                      if (types.includes('administrative_area_level_1')) addressComponents.state = component.long_name;
+                      if (types.includes('postal_code')) addressComponents.postalCode = component.long_name;
+                      if (types.includes('country')) addressComponents.country = component.short_name;
+                    });
+
+                    const streetAddress = [addressComponents.streetNumber, addressComponents.route].filter(Boolean).join(' ');
+                    updateField('streetAddress', streetAddress || '');
+                    updateField('city', addressComponents.city || '');
+                    updateField('region', addressComponents.state || '');
+                    updateField('postalCode', addressComponents.postalCode || '');
+                    updateField('country', addressComponents.country || '');
+
+                    if (place.geometry?.location) {
+                      updateField('latitude', place.geometry.location.lat().toString());
+                      updateField('longitude', place.geometry.location.lng().toString());
+                    }
+                  }}
+                  placeholder="Search for clinic address"
+                  label="Address Lookup"
+                  enableBusinessSearch={true}
+                />
+                
                 <div>
                   <Label>Street Address *</Label>
                   <Input
