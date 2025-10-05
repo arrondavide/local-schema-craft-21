@@ -513,6 +513,63 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>City *</Label>
+            <Input
+              value={location?.city || ''}
+              onChange={(e) => updateLoc('city', e.target.value)}
+              placeholder="London"
+            />
+          </div>
+          <div>
+            <Label>Region *</Label>
+            <Input
+              value={location?.region || ''}
+              onChange={(e) => updateLoc('region', e.target.value)}
+              placeholder="England"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Postal Code</Label>
+            <Input
+              value={location?.postalCode || ''}
+              onChange={(e) => updateLoc('postalCode', e.target.value)}
+              placeholder="W1G 9PF"
+            />
+          </div>
+          <div>
+            <Label>Country Code *</Label>
+            <Input
+              value={location?.country || ''}
+              onChange={(e) => updateLoc('country', e.target.value)}
+              placeholder="GB"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Latitude</Label>
+            <Input
+              value={location?.latitude || ''}
+              onChange={(e) => updateLoc('latitude', e.target.value)}
+              placeholder="51.5237"
+            />
+          </div>
+          <div>
+            <Label>Longitude</Label>
+            <Input
+              value={location?.longitude || ''}
+              onChange={(e) => updateLoc('longitude', e.target.value)}
+              placeholder="-0.1444"
+            />
+          </div>
+        </div>
+
         <div>
           <Label className="text-lg font-medium mb-3 block">Opening Hours</Label>
           {renderOpeningHours(location?.openingHours || [], parentField, index)}
