@@ -417,34 +417,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
 
     return (
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>Clinic Name *</Label>
-            <Input
-              value={location?.name || ''}
-              onChange={(e) => updateLoc('name', e.target.value)}
-              placeholder="Heart Clinic - Harley Street"
-            />
-          </div>
-          <div>
-            <Label>Clinic URL</Label>
-            <Input
-              value={location?.url || ''}
-              onChange={(e) => updateLoc('url', e.target.value)}
-              placeholder="https://example.com/locations/..."
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label>Clinic Phone *</Label>
-          <Input
-            value={location?.telephone || ''}
-            onChange={(e) => updateLoc('telephone', e.target.value)}
-            placeholder="+44 20 1234 5678"
-          />
-        </div>
-
         <div>
           <Label>Street Address *</Label>
           <GooglePlacesAutocomplete
@@ -511,6 +483,34 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
               placeholder="-0.1444"
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Clinic Name *</Label>
+            <Input
+              value={location?.name || ''}
+              onChange={(e) => updateLoc('name', e.target.value)}
+              placeholder="Heart Clinic - Harley Street"
+            />
+          </div>
+          <div>
+            <Label>Clinic URL</Label>
+            <Input
+              value={location?.url || ''}
+              onChange={(e) => updateLoc('url', e.target.value)}
+              placeholder="https://example.com/locations/..."
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label>Clinic Phone *</Label>
+          <Input
+            value={location?.telephone || ''}
+            onChange={(e) => updateLoc('telephone', e.target.value)}
+            placeholder="+44 20 1234 5678"
+          />
         </div>
 
         <div>
