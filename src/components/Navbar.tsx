@@ -19,7 +19,14 @@ const Navbar = () => {
               variant={location.pathname === '/' ? 'default' : 'ghost'} 
               asChild
             >
-              <Link to="/">Business Schema</Link>
+              <Link to="/">Medical Schema</Link>
+            </Button>
+            
+            <Button 
+              variant={location.pathname === '/business' ? 'default' : 'ghost'} 
+              asChild
+            >
+              <Link to="/business">Business Schema</Link>
             </Button>
             
             <Button 
