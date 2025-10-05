@@ -24,20 +24,217 @@ const SchemaGenerator = () => {
   useEffect(() => {
     // Generate schema from form data
     if (entityType && locationType) {
-      const template = getSchemaTemplate(entityType, locationType);
-      const schema = buildSchema(template, formData);
+      const schema = buildSchema(entityType, locationType, formData);
       const cleaned = cleanSchema(schema);
       setGeneratedSchema(cleaned || {});
     }
   }, [formData, entityType, locationType]);
 
-  const buildSchema = (template: any, data: any): any => {
-    // This is a simplified version - you'll need to expand this
-    // based on the actual template structure and form data
-    return {
-      ...template,
-      ...data
+  const buildSchema = (entity: string, location: string, data: any): any => {
+    const isPractitioner = entity === 'practitioner';
+    const isMultiple = location === 'multiple';
+
+    let schema: any = {
+      "@context": "https://schema.org"
     };
+
+    if (isPractitioner) {
+      schema["@type"] = "Person";
+      schema.name = data.name;
+      schema.honorificSuffix = data.honorificSuffix;
+      schema.jobTitle = data.jobTitle;
+      schema.url = data.url;
+      schema.telephone = data.telephone;
+      schema.sameAs = data.sameAs;
+
+      if (isMultiple) {
+        // Multiple locations
+        schema.worksFor = data.worksFor?.map((loc: any) => ({
+          "@type": "MedicalClinic",
+          name: loc.name,
+          url: loc.url,
+          telephone: loc.telephone,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: loc.streetAddress,
+            addressLocality: loc.city,
+            addressRegion: loc.region,
+            postalCode: loc.postalCode,
+            addressCountry: loc.country
+          },
+          geo: loc.latitude && loc.longitude ? {
+            "@type": "GeoCoordinates",
+            latitude: loc.latitude,
+            longitude: loc.longitude
+          } : undefined,
+          openingHoursSpecification: loc.openingHours?.map((h: any) => ({
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: h.days,
+            opens: h.opens,
+            closes: h.closes
+          })),
+          availableService: loc.services?.map((s: string) => ({
+            "@type": "MedicalProcedure",
+            name: s
+          }))
+        }));
+      } else {
+        // Single location
+        const loc = data.worksFor || {};
+        schema.worksFor = {
+          "@type": "MedicalClinic",
+          name: loc.name,
+          url: loc.url,
+          telephone: loc.telephone,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: loc.streetAddress,
+            addressLocality: loc.city,
+            addressRegion: loc.region,
+            postalCode: loc.postalCode,
+            addressCountry: loc.country
+          },
+          geo: loc.latitude && loc.longitude ? {
+            "@type": "GeoCoordinates",
+            latitude: loc.latitude,
+            longitude: loc.longitude
+          } : undefined,
+          openingHoursSpecification: loc.openingHours?.map((h: any) => ({
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: h.days,
+            opens: h.opens,
+            closes: h.closes
+          })),
+          availableService: loc.services?.map((s: string) => ({
+            "@type": "MedicalProcedure",
+            name: s
+          }))
+        };
+      }
+
+      schema.review = data.reviews?.map((r: any) => ({
+        "@type": "Review",
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: r.ratingValue
+        },
+        author: {
+          "@type": "Person",
+          name: r.author
+        }
+      }));
+    } else {
+      // Clinic
+      schema["@type"] = "MedicalBusiness";
+      schema.name = data.name;
+      schema.url = data.url;
+      schema.telephone = data.telephone;
+      schema.email = data.email;
+      schema.sameAs = data.sameAs;
+
+      if (!isMultiple) {
+        // Single clinic
+        schema.address = {
+          "@type": "PostalAddress",
+          streetAddress: data.streetAddress,
+          addressLocality: data.city,
+          addressRegion: data.region,
+          postalCode: data.postalCode,
+          addressCountry: data.country
+        };
+
+        schema.geo = data.latitude && data.longitude ? {
+          "@type": "GeoCoordinates",
+          latitude: data.latitude,
+          longitude: data.longitude
+        } : undefined;
+
+        schema.openingHoursSpecification = data.openingHours?.map((h: any) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: h.days,
+          opens: h.opens,
+          closes: h.closes
+        }));
+
+        schema.availableService = data.services?.map((s: string) => ({
+          "@type": "MedicalProcedure",
+          name: s
+        }));
+
+        schema.aggregateRating = data.ratingValue ? {
+          "@type": "AggregateRating",
+          ratingValue: data.ratingValue,
+          reviewCount: data.reviewCount
+        } : undefined;
+      } else {
+        // Multiple locations/departments
+        schema.address = {
+          "@type": "PostalAddress",
+          streetAddress: data.streetAddress,
+          addressLocality: data.city,
+          addressRegion: data.region,
+          postalCode: data.postalCode,
+          addressCountry: data.country
+        };
+
+        schema.openingHoursSpecification = data.openingHours?.map((h: any) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: h.days,
+          opens: h.opens,
+          closes: h.closes
+        }));
+
+        schema.department = data.departments?.map((dept: any) => ({
+          "@type": "MedicalClinic",
+          name: dept.name,
+          url: dept.url,
+          telephone: dept.telephone,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: dept.streetAddress,
+            addressLocality: dept.city,
+            addressRegion: dept.region,
+            postalCode: dept.postalCode,
+            addressCountry: dept.country
+          },
+          geo: dept.latitude && dept.longitude ? {
+            "@type": "GeoCoordinates",
+            latitude: dept.latitude,
+            longitude: dept.longitude
+          } : undefined,
+          openingHoursSpecification: dept.openingHours?.map((h: any) => ({
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: h.days,
+            opens: h.opens,
+            closes: h.closes
+          })),
+          availableService: dept.services?.map((s: string) => ({
+            "@type": "MedicalProcedure",
+            name: s
+          }))
+        }));
+
+        schema.review = data.reviews?.map((r: any) => ({
+          "@type": "Review",
+          reviewRating: {
+            "@type": "Rating",
+            ratingValue: r.ratingValue
+          },
+          author: {
+            "@type": "Person",
+            name: r.author
+          }
+        }));
+
+        schema.aggregateRating = data.ratingValue ? {
+          "@type": "AggregateRating",
+          ratingValue: data.ratingValue,
+          reviewCount: data.reviewCount
+        } : undefined;
+      }
+    }
+
+    return schema;
   };
 
   const handleBack = () => {
