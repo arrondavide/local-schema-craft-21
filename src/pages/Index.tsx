@@ -91,21 +91,7 @@ const Index = () => {
           </Card>
         </div>
 
-        <Card className="bg-muted/50">
-          <CardHeader>
-            <CardTitle className="text-lg">Features</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>✓ Dynamic form generation based on schema type</li>
-              <li>✓ Optional fields - only included if populated</li>
-              <li>✓ Add/remove multiple services, locations, and reviews</li>
-              <li>✓ Real-time JSON-LD preview with syntax highlighting</li>
-              <li>✓ Validation and download functionality</li>
-              <li>✓ Save/load schema state from local storage</li>
-            </ul>
-          </CardContent>
-        </Card>
+       
       </div>
     </div>
   );
