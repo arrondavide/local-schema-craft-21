@@ -340,7 +340,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
     );
   };
 
-  const handlePlaceSelect = (place: any, parentField: string, index?: number) => {
+  const handlePlaceSelect = (place: any, parentField: string, index?: number, isRootClinic: boolean = false) => {
     console.log('Place selected:', place);
     
     if (!place.address_components) return;
@@ -373,7 +373,9 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       .join(' ');
 
     const updateLoc = (field: string, value: any) => {
-      if (index !== undefined) {
+      if (isRootClinic) {
+        updateField(field, value);
+      } else if (index !== undefined) {
         updateArrayItemField(parentField, index, field, value);
       } else {
         updateNestedField(parentField, field, value);
@@ -393,14 +395,14 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
     }
 
     // For business searches, auto-fill additional details
-    if (place.name) {
+    if (place.name && !isRootClinic) {
       updateLoc('name', place.name);
-      if (place.formatted_phone_number) {
-        updateLoc('telephone', place.formatted_phone_number);
-      }
-      if (place.website) {
-        updateLoc('url', place.website);
-      }
+    }
+    if (place.formatted_phone_number && !isRootClinic) {
+      updateLoc('telephone', place.formatted_phone_number);
+    }
+    if (place.website && !isRootClinic) {
+      updateLoc('url', place.website);
     }
   };
 
@@ -413,25 +415,8 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       }
     };
 
-    const addressValue = [
-      location?.streetAddress,
-      location?.city,
-      location?.region,
-      location?.postalCode,
-    ].filter(Boolean).join(', ');
-
     return (
       <div className="space-y-4">
-        {/* Google Places Autocomplete */}
-        <GooglePlacesAutocomplete
-          value={addressValue}
-          onChange={() => {}}
-          onPlaceSelect={(place) => handlePlaceSelect(place, parentField, index)}
-          placeholder="Search for business or address"
-          label="Address Lookup"
-          enableBusinessSearch={true}
-        />
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Clinic Name *</Label>
@@ -462,10 +447,12 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
 
         <div>
           <Label>Street Address *</Label>
-          <Input
+          <GooglePlacesAutocomplete
             value={location?.streetAddress || ''}
-            onChange={(e) => updateLoc('streetAddress', e.target.value)}
+            onChange={(value) => updateLoc('streetAddress', value)}
+            onPlaceSelect={(place) => handlePlaceSelect(place, parentField, index)}
             placeholder="10 Harley Street"
+            enableBusinessSearch={true}
           />
         </div>
 
@@ -712,46 +699,14 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                 <CardTitle>Location</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <GooglePlacesAutocomplete
-                  value={[formData.streetAddress, formData.city, formData.region, formData.postalCode].filter(Boolean).join(', ')}
-                  onChange={() => {}}
-                  onPlaceSelect={(place) => {
-                    if (!place.address_components) return;
-
-                    const addressComponents: any = {};
-                    place.address_components.forEach((component: any) => {
-                      const types = component.types;
-                      if (types.includes('street_number')) addressComponents.streetNumber = component.long_name;
-                      if (types.includes('route')) addressComponents.route = component.long_name;
-                      if (types.includes('locality')) addressComponents.city = component.long_name;
-                      if (types.includes('administrative_area_level_1')) addressComponents.state = component.long_name;
-                      if (types.includes('postal_code')) addressComponents.postalCode = component.long_name;
-                      if (types.includes('country')) addressComponents.country = component.short_name;
-                    });
-
-                    const streetAddress = [addressComponents.streetNumber, addressComponents.route].filter(Boolean).join(' ');
-                    updateField('streetAddress', streetAddress || '');
-                    updateField('city', addressComponents.city || '');
-                    updateField('region', addressComponents.state || '');
-                    updateField('postalCode', addressComponents.postalCode || '');
-                    updateField('country', addressComponents.country || '');
-
-                    if (place.geometry?.location) {
-                      updateField('latitude', place.geometry.location.lat().toString());
-                      updateField('longitude', place.geometry.location.lng().toString());
-                    }
-                  }}
-                  placeholder="Search for clinic address"
-                  label="Address Lookup"
-                  enableBusinessSearch={true}
-                />
-                
                 <div>
                   <Label>Street Address *</Label>
-                  <Input
+                  <GooglePlacesAutocomplete
                     value={formData.streetAddress || ''}
-                    onChange={(e) => updateField('streetAddress', e.target.value)}
+                    onChange={(value) => updateField('streetAddress', value)}
+                    onPlaceSelect={(place) => handlePlaceSelect(place, '', undefined, true)}
                     placeholder="100 Beauty Avenue"
+                    enableBusinessSearch={true}
                   />
                 </div>
 
