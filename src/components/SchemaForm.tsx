@@ -226,9 +226,14 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
 
     const toggleDay = (hourIndex: number, day: string) => {
       const hour = hours[hourIndex];
-      const days = hour.days.includes(day)
-        ? hour.days.filter((d: string) => d !== day)
-        : [...hour.days, day];
+      let days;
+      if (hour.days.includes(day)) {
+        days = hour.days.filter((d: string) => d !== day);
+      } else {
+        days = [...hour.days, day];
+        // Sort days according to daysOfWeek order
+        days.sort((a, b) => daysOfWeek.indexOf(a) - daysOfWeek.indexOf(b));
+      }
       updateHours(hourIndex, 'days', days);
     };
 
