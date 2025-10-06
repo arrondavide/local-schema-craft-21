@@ -102,7 +102,13 @@ const GooglePlacesAutocomplete = ({
   };
 
   useEffect(() => {
-    if (!isLoaded || !inputRef.current || !window.google || autocompleteRef.current) return;
+    if (!isLoaded || !inputRef.current || !window.google) return;
+
+    // Clean up existing autocomplete instance if it exists
+    if (autocompleteRef.current && window.google) {
+      window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
+    }
 
     try {
       const searchTypes = searchMode === 'business' ? ['establishment'] : ['address'];
