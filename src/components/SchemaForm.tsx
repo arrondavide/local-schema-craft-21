@@ -187,7 +187,11 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       } else {
         const newHours = [...hours];
         newHours[index] = { ...newHours[index], [field]: value };
-        updateField('openingHours', newHours);
+        if (parentField === 'openingHours') {
+          updateField('openingHours', newHours);
+        } else {
+          updateNestedField(parentField, 'openingHours', newHours);
+        }
       }
     };
 
@@ -197,7 +201,12 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
         const newHours = [...hours, newHour];
         updateArrayItemField(parentField, parentIndex, 'openingHours', newHours);
       } else {
-        addArrayItem('openingHours', newHour);
+        if (parentField === 'openingHours') {
+          addArrayItem('openingHours', newHour);
+        } else {
+          const newHours = [...(hours || []), newHour];
+          updateNestedField(parentField, 'openingHours', newHours);
+        }
       }
     };
 
@@ -206,7 +215,12 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
         const newHours = hours.filter((_: any, i: number) => i !== index);
         updateArrayItemField(parentField, parentIndex, 'openingHours', newHours);
       } else {
-        removeArrayItem('openingHours', index);
+        if (parentField === 'openingHours') {
+          removeArrayItem('openingHours', index);
+        } else {
+          const newHours = hours.filter((_: any, i: number) => i !== index);
+          updateNestedField(parentField, 'openingHours', newHours);
+        }
       }
     };
 
@@ -289,7 +303,13 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
         newServices[index] = value;
         updateArrayItemField(parentField, parentIndex, 'services', newServices);
       } else {
-        updateArrayItem('services', index, value);
+        if (parentField === 'services') {
+          updateArrayItem('services', index, value);
+        } else {
+          const newServices = [...services];
+          newServices[index] = value;
+          updateNestedField(parentField, 'services', newServices);
+        }
       }
     };
 
@@ -297,7 +317,12 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       if (parentIndex !== undefined) {
         updateArrayItemField(parentField, parentIndex, 'services', [...services, '']);
       } else {
-        addArrayItem('services', '');
+        if (parentField === 'services') {
+          addArrayItem('services', '');
+        } else {
+          const newServices = [...(services || []), ''];
+          updateNestedField(parentField, 'services', newServices);
+        }
       }
     };
 
@@ -306,7 +331,12 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
         const newServices = services.filter((_: any, i: number) => i !== index);
         updateArrayItemField(parentField, parentIndex, 'services', newServices);
       } else {
-        removeArrayItem('services', index);
+        if (parentField === 'services') {
+          removeArrayItem('services', index);
+        } else {
+          const newServices = services.filter((_: any, i: number) => i !== index);
+          updateNestedField(parentField, 'services', newServices);
+        }
       }
     };
 
