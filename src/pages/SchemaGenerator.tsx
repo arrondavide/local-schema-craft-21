@@ -125,7 +125,7 @@ const SchemaGenerator = () => {
       }));
     } else {
       // Clinic
-      schema["@type"] = "MedicalBusiness";
+      schema["@type"] = "MedicalClinic";
       schema.name = data.name;
       schema.url = data.url;
       schema.telephone = data.telephone;
@@ -159,6 +159,18 @@ const SchemaGenerator = () => {
         schema.availableService = data.services?.map((s: string) => ({
           "@type": "MedicalProcedure",
           name: s
+        }));
+
+        schema.review = data.reviews?.map((r: any) => ({
+          "@type": "Review",
+          reviewRating: {
+            "@type": "Rating",
+            ratingValue: r.ratingValue
+          },
+          author: {
+            "@type": "Person",
+            name: r.author
+          }
         }));
 
         schema.aggregateRating = data.ratingValue ? {
