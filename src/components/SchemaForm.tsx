@@ -83,7 +83,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       initialData.priceRange = '';
       initialData.logo = '';
       initialData.image = '';
-      initialData.hasMap = '';
+      initialData.cidLink = '';
       initialData.streetAddress = '';
       initialData.city = '';
       initialData.region = '';
@@ -663,11 +663,11 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
               </div>
 
               <div>
-                <Label>Has Map</Label>
+                <Label>CID Link</Label>
                 <Input
-                  value={formData.hasMap || ''}
-                  onChange={(e) => updateField('hasMap', e.target.value)}
-                  placeholder="https://maps.google.com/..."
+                  value={formData.cidLink || ''}
+                  onChange={(e) => updateField('cidLink', e.target.value)}
+                  placeholder="https://cid.link/..."
                   type="url"
                 />
               </div>

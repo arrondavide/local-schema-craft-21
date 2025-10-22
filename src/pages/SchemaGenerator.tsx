@@ -133,7 +133,7 @@ const SchemaGenerator = () => {
       schema.priceRange = data.priceRange;
       schema.logo = data.logo;
       schema.image = data.image;
-      schema.hasMap = data.hasMap;
+      schema.cidLink = data.cidLink;
       schema.sameAs = data.sameAs;
 
       if (!isMultiple) {
