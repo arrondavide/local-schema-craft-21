@@ -80,6 +80,10 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
     } else {
       // Clinic
       initialData.email = '';
+      initialData.priceRange = '';
+      initialData.logo = '';
+      initialData.image = '';
+      initialData.cidLink = '';
       initialData.streetAddress = '';
       initialData.city = '';
       initialData.region = '';
@@ -618,15 +622,56 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
           </div>
 
           {!isPractitioner && (
-            <div>
-              <Label>Email</Label>
-              <Input
-                value={formData.email || ''}
-                onChange={(e) => updateField('email', e.target.value)}
-                placeholder="info@example.com"
-                type="email"
-              />
-            </div>
+            <>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  value={formData.email || ''}
+                  onChange={(e) => updateField('email', e.target.value)}
+                  placeholder="info@example.com"
+                  type="email"
+                />
+              </div>
+              
+              <div>
+                <Label>Price Range</Label>
+                <Input
+                  value={formData.priceRange || ''}
+                  onChange={(e) => updateField('priceRange', e.target.value)}
+                  placeholder="££"
+                />
+              </div>
+
+              <div>
+                <Label>Logo URL</Label>
+                <Input
+                  value={formData.logo || ''}
+                  onChange={(e) => updateField('logo', e.target.value)}
+                  placeholder="https://example.com/logo.png"
+                  type="url"
+                />
+              </div>
+
+              <div>
+                <Label>Image URL</Label>
+                <Input
+                  value={formData.image || ''}
+                  onChange={(e) => updateField('image', e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  type="url"
+                />
+              </div>
+
+              <div>
+                <Label>CID Link</Label>
+                <Input
+                  value={formData.cidLink || ''}
+                  onChange={(e) => updateField('cidLink', e.target.value)}
+                  placeholder="https://cid.link/..."
+                  type="url"
+                />
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

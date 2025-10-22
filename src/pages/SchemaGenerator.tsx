@@ -130,6 +130,10 @@ const SchemaGenerator = () => {
       schema.url = data.url;
       schema.telephone = data.telephone;
       schema.email = data.email;
+      schema.priceRange = data.priceRange;
+      schema.logo = data.logo;
+      schema.image = data.image;
+      schema.cidLink = data.cidLink;
       schema.sameAs = data.sameAs;
 
       if (!isMultiple) {
