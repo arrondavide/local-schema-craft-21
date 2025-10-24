@@ -50,9 +50,10 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
             days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
             opens: '09:00',
             closes: '18:00'
-          }],
-          services: ['']
+          }]
         }];
+        // Shared services for all locations
+        initialData.services = [''];
       } else {
         initialData.worksFor = {
           name: '',
@@ -556,11 +557,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
           <Label className="text-lg font-medium mb-3 block">Opening Hours</Label>
           {renderOpeningHours(location?.openingHours || [], parentField, index)}
         </div>
-
-        <div>
-          <Label className="text-lg font-medium mb-3 block">Available Services</Label>
-          {renderServices(location?.services || [], parentField, index)}
-        </div>
       </div>
     );
   };
@@ -715,7 +711,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       </Card>
 
       {/* Location/Work Information */}
-      {isPractitioner ? (
+      {isPractitioner && (
         isMultiple ? (
           // Practitioner - Multiple Locations
           <Card>
@@ -727,8 +723,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                     name: '', url: '', telephone: '', streetAddress: '',
                     city: '', region: '', postalCode: '', country: '',
                     latitude: '', longitude: '',
-                    openingHours: [{ days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }],
-                    services: ['']
+                    openingHours: [{ days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }]
                   })}
                   size="sm"
                   variant="outline"
@@ -770,8 +765,40 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
             </CardContent>
           </Card>
         )
-      ) : (
-        // Clinic
+      )}
+
+      {/* Shared Services for Practitioner with Multiple Locations */}
+      {isPractitioner && isMultiple && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Services (applies to all locations)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label className="text-lg font-medium mb-3 block">Services</Label>
+              {renderServices(formData.services || [], 'services')}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Services for Single Location Practitioner */}
+      {isPractitioner && !isMultiple && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Services</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label className="text-lg font-medium mb-3 block">Services</Label>
+              {renderServices(formData.worksFor?.services || [], 'worksFor')}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Clinic */}
+      {!isPractitioner && (
         <>
           {!isMultiple && (
             <Card>

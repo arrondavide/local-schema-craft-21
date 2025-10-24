@@ -48,7 +48,7 @@ const SchemaGenerator = () => {
       schema.sameAs = data.sameAs;
 
       if (isMultiple) {
-        // Multiple locations
+        // Multiple locations - all share the same services
         schema.worksFor = data.worksFor?.map((loc: any) => ({
           "@type": "MedicalClinic",
           name: loc.name,
@@ -73,7 +73,8 @@ const SchemaGenerator = () => {
             opens: h.opens,
             closes: h.closes
           })),
-          availableService: loc.services?.map((s: string) => ({
+          // Use shared services from data.services
+          availableService: data.services?.map((s: string) => ({
             "@type": "MedicalProcedure",
             name: s
           }))
