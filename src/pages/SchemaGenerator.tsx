@@ -1,18 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSchema } from '@/context/SchemaContext';
+import { useSchema, EntityType, LocationType } from '@/context/SchemaContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import SchemaForm from '@/components/SchemaForm';
 import SchemaPreview from '@/components/SchemaPreview';
 import { getSchemaTemplate, cleanSchema } from '@/utils/schemaTemplates';
 import { Badge } from '@/components/ui/badge';
+import { SaveSchemaDialog } from '@/components/SaveSchemaDialog';
+import { LoadSchemaDialog } from '@/components/LoadSchemaDialog';
 
 const SchemaGenerator = () => {
   const navigate = useNavigate();
-  const { entityType, locationType, resetSchema } = useSchema();
+  const { entityType, locationType, resetSchema, setSchemaType } = useSchema();
   const [formData, setFormData] = useState<any>({});
   const [generatedSchema, setGeneratedSchema] = useState<any>({});
+
+  const handleLoadSchema = (loadedEntityType: EntityType, loadedLocationType: LocationType, data: any) => {
+    setSchemaType(loadedEntityType, loadedLocationType);
+    setFormData(data);
+  };
 
   useEffect(() => {
     if (!entityType || !locationType) {
@@ -283,6 +290,14 @@ const SchemaGenerator = () => {
           <Badge variant="secondary" className="text-sm">
             {getSchemaTypeLabel()}
           </Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <SaveSchemaDialog 
+            entityType={entityType} 
+            locationType={locationType} 
+            formData={formData} 
+          />
+          <LoadSchemaDialog onLoad={handleLoadSchema} />
         </div>
       </div>
 
