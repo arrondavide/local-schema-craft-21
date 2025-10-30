@@ -82,8 +82,8 @@ const SchemaGenerator = () => {
           },
           geo: loc.latitude && loc.longitude ? {
             "@type": "GeoCoordinates",
-            latitude: loc.latitude,
-            longitude: loc.longitude
+            latitude: parseFloat(loc.latitude),
+            longitude: parseFloat(loc.longitude)
           } : undefined,
           openingHoursSpecification: loc.openingHours?.map((h: any) => ({
             "@type": "OpeningHoursSpecification",
@@ -115,8 +115,8 @@ const SchemaGenerator = () => {
           },
           geo: loc.latitude && loc.longitude ? {
             "@type": "GeoCoordinates",
-            latitude: loc.latitude,
-            longitude: loc.longitude
+            latitude: parseFloat(loc.latitude),
+            longitude: parseFloat(loc.longitude)
           } : undefined,
           openingHoursSpecification: loc.openingHours?.map((h: any) => ({
             "@type": "OpeningHoursSpecification",
@@ -135,7 +135,7 @@ const SchemaGenerator = () => {
         "@type": "Review",
         reviewRating: {
           "@type": "Rating",
-          ratingValue: r.ratingValue
+          ratingValue: parseFloat(r.ratingValue)
         },
         author: {
           "@type": "Person",
@@ -143,9 +143,10 @@ const SchemaGenerator = () => {
         }
       }));
     } else {
-      // Clinic
-      schema["@type"] = "MedicalClinic";
+      // Clinic - Use array format for @type as per schema requirements
+      schema["@type"] = ["Physician", "MedicalClinic"];
       schema.name = data.name;
+      schema.description = data.description;
       schema.url = data.url;
       schema.telephone = data.telephone;
       schema.email = data.email;
@@ -154,6 +155,7 @@ const SchemaGenerator = () => {
       schema.image = data.image;
       schema.hasMap = data.hasMap;
       schema.sameAs = data.sameAs;
+      schema.medicalSpecialty = data.medicalSpecialty;
 
       if (!isMultiple) {
         // Single clinic
@@ -168,8 +170,8 @@ const SchemaGenerator = () => {
 
         schema.geo = data.latitude && data.longitude ? {
           "@type": "GeoCoordinates",
-          latitude: data.latitude,
-          longitude: data.longitude
+          latitude: parseFloat(data.latitude),
+          longitude: parseFloat(data.longitude)
         } : undefined;
 
         schema.openingHoursSpecification = data.openingHours?.map((h: any) => ({
@@ -188,7 +190,7 @@ const SchemaGenerator = () => {
           "@type": "Review",
           reviewRating: {
             "@type": "Rating",
-            ratingValue: r.ratingValue
+            ratingValue: parseFloat(r.ratingValue)
           },
           author: {
             "@type": "Person",
@@ -198,11 +200,11 @@ const SchemaGenerator = () => {
 
         schema.aggregateRating = data.ratingValue ? {
           "@type": "AggregateRating",
-          ratingValue: data.ratingValue,
-          reviewCount: data.reviewCount
+          ratingValue: parseFloat(data.ratingValue),
+          reviewCount: parseInt(data.reviewCount) || 0
         } : undefined;
       } else {
-        // Multiple locations/departments
+        // Multiple locations - Use subOrganization instead of department
         schema.address = {
           "@type": "PostalAddress",
           streetAddress: data.streetAddress,
@@ -219,33 +221,29 @@ const SchemaGenerator = () => {
           closes: h.closes
         }));
 
-        schema.department = data.departments?.map((dept: any) => ({
+        // Only include subOrganization if there are additional locations
+        schema.subOrganization = data.subOrganizations?.map((org: any) => ({
           "@type": "MedicalClinic",
-          name: dept.name,
-          url: dept.url,
-          telephone: dept.telephone,
+          name: org.name,
+          hasMap: org.hasMap,
           address: {
             "@type": "PostalAddress",
-            streetAddress: dept.streetAddress,
-            addressLocality: dept.city,
-            addressRegion: dept.region,
-            postalCode: dept.postalCode,
-            addressCountry: dept.country
+            streetAddress: org.streetAddress,
+            addressLocality: org.city,
+            addressRegion: org.region,
+            postalCode: org.postalCode,
+            addressCountry: org.country
           },
-          geo: dept.latitude && dept.longitude ? {
+          geo: org.latitude && org.longitude ? {
             "@type": "GeoCoordinates",
-            latitude: dept.latitude,
-            longitude: dept.longitude
+            latitude: parseFloat(org.latitude),
+            longitude: parseFloat(org.longitude)
           } : undefined,
-          openingHoursSpecification: dept.openingHours?.map((h: any) => ({
+          openingHoursSpecification: org.openingHours?.map((h: any) => ({
             "@type": "OpeningHoursSpecification",
             dayOfWeek: h.days,
             opens: h.opens,
             closes: h.closes
-          })),
-          availableService: dept.services?.map((s: string) => ({
-            "@type": "MedicalProcedure",
-            name: s
           }))
         }));
 
@@ -253,7 +251,7 @@ const SchemaGenerator = () => {
           "@type": "Review",
           reviewRating: {
             "@type": "Rating",
-            ratingValue: r.ratingValue
+            ratingValue: parseFloat(r.ratingValue)
           },
           author: {
             "@type": "Person",
@@ -263,8 +261,8 @@ const SchemaGenerator = () => {
 
         schema.aggregateRating = data.ratingValue ? {
           "@type": "AggregateRating",
-          ratingValue: data.ratingValue,
-          reviewCount: data.reviewCount
+          ratingValue: parseFloat(data.ratingValue),
+          reviewCount: parseInt(data.reviewCount) || 0
         } : undefined;
       }
     }

@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2 } from 'lucide-react';
 import { EntityType, LocationType } from '@/context/SchemaContext';
 import GooglePlacesAutocomplete from '@/components/GooglePlacesAutocomplete';
@@ -80,11 +81,13 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       }];
     } else {
       // Clinic
+      initialData.description = '';
       initialData.email = '';
       initialData.priceRange = '';
       initialData.logo = '';
       initialData.image = '';
       initialData.hasMap = '';
+      initialData.medicalSpecialty = [];
       initialData.streetAddress = '';
       initialData.city = '';
       initialData.region = '';
@@ -102,10 +105,9 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       initialData.reviewCount = '';
 
       if (isMultiple) {
-        initialData.departments = [{
+        initialData.subOrganizations = [{
           name: '',
-          url: '',
-          telephone: '',
+          hasMap: '',
           streetAddress: '',
           city: '',
           region: '',
@@ -117,8 +119,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
             days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
             opens: '09:00',
             closes: '18:00'
-          }],
-          services: ['']
+          }]
         }];
         initialData.reviews = [{
           ratingValue: '',
@@ -609,16 +610,41 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
           </div>
 
           <div>
-            <Label>Phone Number *</Label>
+            <Label>Phone Number (no spaces) *</Label>
             <Input
               value={formData.telephone || ''}
-              onChange={(e) => updateField('telephone', e.target.value)}
-              placeholder="+44 20 1234 5678"
+              onChange={(e) => {
+                // Remove spaces from input
+                const value = e.target.value.replace(/\s/g, '');
+                updateField('telephone', value);
+              }}
+              placeholder="+442012345678"
             />
+            <p className="text-sm text-muted-foreground mt-1">
+              Enter phone number without spaces
+            </p>
           </div>
 
           {!isPractitioner && (
             <>
+              <div>
+                <Label>Description (max 500 characters) *</Label>
+                <Textarea
+                  value={formData.description || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.length <= 500) {
+                      updateField('description', value);
+                    }
+                  }}
+                  placeholder="Brief description of the clinic and services..."
+                  rows={3}
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  {(formData.description || '').length}/500 characters
+                </p>
+              </div>
+              
               <div>
                 <Label>Email</Label>
                 <Input
@@ -666,6 +692,67 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                   placeholder="https://maps.google.com/..."
                   type="url"
                 />
+              </div>
+
+              <div>
+                <Label>Medical Specialty (max 3)</Label>
+                <div className="space-y-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {(formData.medicalSpecialty || []).map((specialty: string, index: number) => (
+                      <Badge key={index} variant="secondary" className="px-3 py-1">
+                        {specialty}
+                        <button
+                          onClick={() => {
+                            updateField('medicalSpecialty', formData.medicalSpecialty.filter((_: string, i: number) => i !== index));
+                          }}
+                          className="ml-2 text-destructive hover:text-destructive/80"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <select
+                    className="w-full border rounded-md p-2"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value && !formData.medicalSpecialty?.includes(value) && (formData.medicalSpecialty?.length || 0) < 3) {
+                        updateField('medicalSpecialty', [...(formData.medicalSpecialty || []), value]);
+                        e.target.value = '';
+                      }
+                    }}
+                    disabled={(formData.medicalSpecialty?.length || 0) >= 3}
+                  >
+                    <option value="">Select medical specialty...</option>
+                    <option value="PrimaryCare">Primary Care</option>
+                    <option value="InternalMedicine">Internal Medicine</option>
+                    <option value="Cardiovascular">Cardiovascular</option>
+                    <option value="Pulmonary">Pulmonary</option>
+                    <option value="RespiratoryTherapy">Respiratory Therapy</option>
+                    <option value="Neurologic">Neurologic</option>
+                    <option value="Psychiatric">Psychiatric</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Dentistry">Dentistry</option>
+                    <option value="Orthodontics">Orthodontics</option>
+                    <option value="Otolaryngologic">Otolaryngologic (ENT)</option>
+                    <option value="Ophthalmologic">Ophthalmologic</option>
+                    <option value="Orthopedic">Orthopedic</option>
+                    <option value="SportsMedicine">Sports Medicine</option>
+                    <option value="PhysicalTherapy">Physical Therapy</option>
+                    <option value="Chiropractic">Chiropractic</option>
+                    <option value="Dermatologic">Dermatologic</option>
+                    <option value="PlasticSurgery">Plastic Surgery</option>
+                    <option value="CosmeticSurgery">Cosmetic Surgery</option>
+                    <option value="Gastroenterologic">Gastroenterologic</option>
+                    <option value="Urologic">Urologic</option>
+                    <option value="Gynecologic">Gynecologic</option>
+                    <option value="Obstetric">Obstetric</option>
+                    <option value="Oncologic">Oncologic</option>
+                  </select>
+                  <p className="text-sm text-muted-foreground">
+                    Selected {(formData.medicalSpecialty?.length || 0)}/3 specialties
+                  </p>
+                </div>
               </div>
             </>
           )}
@@ -901,49 +988,135 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
             </Card>
           )}
 
-          {/* Multiple Clinic Departments */}
+          {/* Multiple Clinic Sub-Organizations */}
           {isMultiple && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Departments / Branches</CardTitle>
-                  <Button
-                    onClick={() => addArrayItem('departments', {
-                      name: '', url: '', telephone: '', streetAddress: '',
-                      city: '', region: '', postalCode: '', country: '',
-                      latitude: '', longitude: '',
-                      openingHours: [{ days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }],
-                      services: ['']
-                    })}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Department
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {formData.departments?.map((dept: any, index: number) => (
-                  <div key={index} className="p-4 border rounded-lg space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Department {index + 1}</h4>
-                      {formData.departments.length > 1 && (
-                        <Button
-                          onClick={() => removeArrayItem('departments', index)}
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    {renderLocationFields(dept, 'departments', index)}
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Main Location</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Street Address *</Label>
+                    <GooglePlacesAutocomplete
+                      value={formData.streetAddress || ''}
+                      onChange={(value) => updateField('streetAddress', value)}
+                      onPlaceSelect={(place) => handlePlaceSelect(place, '', undefined, true)}
+                      placeholder="100 Beauty Avenue"
+                      enableBusinessSearch={true}
+                    />
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>City *</Label>
+                      <Input
+                        value={formData.city || ''}
+                        onChange={(e) => updateField('city', e.target.value)}
+                        placeholder="London"
+                      />
+                    </div>
+                    <div>
+                      <Label>Region *</Label>
+                      <Input
+                        value={formData.region || ''}
+                        onChange={(e) => updateField('region', e.target.value)}
+                        placeholder="England"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Postal Code</Label>
+                      <Input
+                        value={formData.postalCode || ''}
+                        onChange={(e) => updateField('postalCode', e.target.value)}
+                        placeholder="SW1A 1AA"
+                      />
+                    </div>
+                    <div>
+                      <Label>Country Code *</Label>
+                      <Input
+                        value={formData.country || ''}
+                        onChange={(e) => updateField('country', e.target.value)}
+                        placeholder="GB"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Main Location Opening Hours</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderOpeningHours(formData.openingHours || [], 'openingHours')}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Additional Locations (Sub-Organizations)</CardTitle>
+                    <Button
+                      onClick={() => addArrayItem('subOrganizations', {
+                        name: '', hasMap: '', streetAddress: '',
+                        city: '', region: '', postalCode: '', country: '',
+                        latitude: '', longitude: '',
+                        openingHours: [{ days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }]
+                      })}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Location
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {formData.subOrganizations?.map((org: any, index: number) => (
+                    <div key={index} className="p-4 border rounded-lg space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Location {index + 1}</h4>
+                        {formData.subOrganizations.length > 1 && (
+                          <Button
+                            onClick={() => removeArrayItem('subOrganizations', index)}
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <Label>Location Name *</Label>
+                        <Input
+                          value={org.name || ''}
+                          onChange={(e) => updateArrayItemField('subOrganizations', index, 'name', e.target.value)}
+                          placeholder="Branch Location Name"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>Has Map</Label>
+                        <Input
+                          value={org.hasMap || ''}
+                          onChange={(e) => updateArrayItemField('subOrganizations', index, 'hasMap', e.target.value)}
+                          placeholder="https://maps.google.com/..."
+                          type="url"
+                        />
+                      </div>
+                      
+                      {renderLocationFields(org, 'subOrganizations', index)}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </>
           )}
         </>
       )}
