@@ -1,16 +1,25 @@
 import { useNavigate } from 'react-router-dom';
-import { useSchema } from '@/context/SchemaContext';
+import { useSchema, EntityType, LocationType } from '@/context/SchemaContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Building2, MapPin, Building } from 'lucide-react';
+import { LoadSchemaDialog } from '@/components/LoadSchemaDialog';
+import { useState } from 'react';
 
 const Index = () => {
   const navigate = useNavigate();
   const { setSchemaType } = useSchema();
+  const [loadedData, setLoadedData] = useState<any>(null);
 
   const handleSelection = (entity: 'practitioner' | 'clinic', location: 'single' | 'multiple') => {
     setSchemaType(entity, location);
     navigate('/schema-generator');
+  };
+
+  const handleLoadSchema = (entityType: EntityType, locationType: LocationType, data: any) => {
+    setSchemaType(entityType, locationType);
+    // Store the loaded data to pass to SchemaGenerator
+    navigate('/schema-generator', { state: { loadedData: data } });
   };
 
   return (
@@ -21,6 +30,9 @@ const Index = () => {
           <p className="text-lg text-muted-foreground">
             Create valid JSON-LD schema markup for medical practitioners and clinics
           </p>
+          <div className="flex justify-center pt-2">
+            <LoadSchemaDialog onLoad={handleLoadSchema} />
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSchema, EntityType, LocationType } from '@/context/SchemaContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -12,9 +12,20 @@ import { LoadSchemaDialog } from '@/components/LoadSchemaDialog';
 
 const SchemaGenerator = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { entityType, locationType, resetSchema, setSchemaType } = useSchema();
   const [formData, setFormData] = useState<any>({});
   const [generatedSchema, setGeneratedSchema] = useState<any>({});
+
+  // Load data from navigation state if available
+  useEffect(() => {
+    const state = location.state as { loadedData?: any };
+    if (state?.loadedData) {
+      setFormData(state.loadedData);
+      // Clear the state to prevent reloading on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, []);
 
   const handleLoadSchema = (loadedEntityType: EntityType, loadedLocationType: LocationType, data: any) => {
     setSchemaType(loadedEntityType, loadedLocationType);
