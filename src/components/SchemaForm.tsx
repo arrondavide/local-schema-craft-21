@@ -1154,6 +1154,25 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       />
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Latitude</Label>
+                      <Input
+                        value={formData.latitude || ''}
+                        onChange={(e) => updateField('latitude', e.target.value)}
+                        placeholder="51.5237"
+                      />
+                    </div>
+                    <div>
+                      <Label>Longitude</Label>
+                      <Input
+                        value={formData.longitude || ''}
+                        onChange={(e) => updateField('longitude', e.target.value)}
+                        placeholder="-0.1444"
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               
@@ -1221,7 +1240,73 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                         />
                       </div>
                       
-                      {renderLocationFields(org, 'subOrganizations', index)}
+                      <div>
+                        <Label>Street Address *</Label>
+                        <GooglePlacesAutocomplete
+                          value={org.streetAddress || ''}
+                          onChange={(value) => updateArrayItemField('subOrganizations', index, 'streetAddress', value)}
+                          onPlaceSelect={(place) => handlePlaceSelect(place, 'subOrganizations', index)}
+                          placeholder="100 Beauty Avenue"
+                          enableBusinessSearch={true}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>City *</Label>
+                          <Input
+                            value={org.city || ''}
+                            onChange={(e) => updateArrayItemField('subOrganizations', index, 'city', e.target.value)}
+                            placeholder="London"
+                          />
+                        </div>
+                        <div>
+                          <Label>Region *</Label>
+                          <Input
+                            value={org.region || ''}
+                            onChange={(e) => updateArrayItemField('subOrganizations', index, 'region', e.target.value)}
+                            placeholder="England"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Postal Code</Label>
+                          <Input
+                            value={org.postalCode || ''}
+                            onChange={(e) => updateArrayItemField('subOrganizations', index, 'postalCode', e.target.value)}
+                            placeholder="SW1A 1AA"
+                          />
+                        </div>
+                        <div>
+                          <Label>Country Code *</Label>
+                          <Input
+                            value={org.country || ''}
+                            onChange={(e) => updateArrayItemField('subOrganizations', index, 'country', e.target.value)}
+                            placeholder="GB"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Latitude</Label>
+                          <Input
+                            value={org.latitude || ''}
+                            onChange={(e) => updateArrayItemField('subOrganizations', index, 'latitude', e.target.value)}
+                            placeholder="51.5237"
+                          />
+                        </div>
+                        <div>
+                          <Label>Longitude</Label>
+                          <Input
+                            value={org.longitude || ''}
+                            onChange={(e) => updateArrayItemField('subOrganizations', index, 'longitude', e.target.value)}
+                            placeholder="-0.1444"
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </CardContent>
