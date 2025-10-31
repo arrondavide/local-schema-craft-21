@@ -81,6 +81,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       }];
     } else {
       // Clinic
+      initialData.clinicTypes = ['Physician', 'MedicalClinic']; // Default types
       initialData.description = '';
       initialData.email = '';
       initialData.priceRange = '';
@@ -570,6 +571,49 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
           <CardTitle>{isPractitioner ? 'Practitioner' : 'Clinic'} Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!isPractitioner && (
+            <div>
+              <Label>Clinic Type (@type) *</Label>
+              <div className="space-y-2">
+                <div className="flex gap-2 flex-wrap">
+                  {(formData.clinicTypes || []).map((type: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="px-3 py-1">
+                      {type}
+                      <button
+                        onClick={() => {
+                          updateField('clinicTypes', formData.clinicTypes.filter((_: string, i: number) => i !== index));
+                        }}
+                        className="ml-2 text-destructive hover:text-destructive/80"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <select
+                  className="w-full border rounded-md p-2"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value && !formData.clinicTypes?.includes(value)) {
+                      updateField('clinicTypes', [...(formData.clinicTypes || []), value]);
+                      e.target.value = '';
+                    }
+                  }}
+                >
+                  <option value="">Select clinic type...</option>
+                  <option value="Physician">Physician</option>
+                  <option value="MedicalClinic">MedicalClinic</option>
+                  <option value="Dentist">Dentist</option>
+                  <option value="MedicalBusiness">MedicalBusiness</option>
+                  <option value="HealthAndBeautyBusiness">HealthAndBeautyBusiness</option>
+                </select>
+                <p className="text-sm text-muted-foreground">
+                  Selected {(formData.clinicTypes?.length || 0)} type(s) - Select at least one
+                </p>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>{isPractitioner ? 'Full Name' : 'Clinic Name'} *</Label>
             <Input

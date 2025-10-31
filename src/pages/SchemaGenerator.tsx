@@ -143,8 +143,10 @@ const SchemaGenerator = () => {
         }
       }));
     } else {
-      // Clinic - Use array format for @type as per schema requirements
-      schema["@type"] = ["Physician", "MedicalClinic"];
+      // Clinic - Use selected clinic types or default
+      schema["@type"] = data.clinicTypes && data.clinicTypes.length > 0 
+        ? (data.clinicTypes.length === 1 ? data.clinicTypes[0] : data.clinicTypes)
+        : ["Physician", "MedicalClinic"];
       schema.name = data.name;
       schema.description = data.description;
       schema.url = data.url;
