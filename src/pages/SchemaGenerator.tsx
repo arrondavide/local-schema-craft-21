@@ -131,17 +131,6 @@ const SchemaGenerator = () => {
         };
       }
 
-      schema.review = data.reviews?.map((r: any) => ({
-        "@type": "Review",
-        reviewRating: {
-          "@type": "Rating",
-          ratingValue: parseFloat(r.ratingValue)
-        },
-        author: {
-          "@type": "Person",
-          name: r.author
-        }
-      }));
     } else {
       // Clinic - Use selected clinic types or default
       schema["@type"] = data.clinicTypes && data.clinicTypes.length > 0 
@@ -188,18 +177,6 @@ const SchemaGenerator = () => {
           name: s
         }));
 
-        schema.review = data.reviews?.map((r: any) => ({
-          "@type": "Review",
-          reviewRating: {
-            "@type": "Rating",
-            ratingValue: parseFloat(r.ratingValue)
-          },
-          author: {
-            "@type": "Person",
-            name: r.author
-          }
-        }));
-
         schema.aggregateRating = data.ratingValue ? {
           "@type": "AggregateRating",
           ratingValue: parseFloat(data.ratingValue),
@@ -221,6 +198,11 @@ const SchemaGenerator = () => {
           dayOfWeek: h.days,
           opens: h.opens,
           closes: h.closes
+        }));
+
+        schema.availableService = data.services?.map((s: string) => ({
+          "@type": "MedicalProcedure",
+          name: s
         }));
 
         // Only include subOrganization if there are additional locations
@@ -257,18 +239,6 @@ const SchemaGenerator = () => {
             }))
           };
         });
-
-        schema.review = data.reviews?.map((r: any) => ({
-          "@type": "Review",
-          reviewRating: {
-            "@type": "Rating",
-            ratingValue: parseFloat(r.ratingValue)
-          },
-          author: {
-            "@type": "Person",
-            name: r.author
-          }
-        }));
 
         schema.aggregateRating = data.ratingValue ? {
           "@type": "AggregateRating",

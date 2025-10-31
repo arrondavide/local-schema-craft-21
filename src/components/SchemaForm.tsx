@@ -1200,7 +1200,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                   <CardTitle>Reviews</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3 pb-4 border-b mb-4">
+                  <div className="space-y-3">
                     <h4 className="font-medium">Aggregate Rating</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1226,55 +1226,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium">Individual Reviews</h4>
-                    <Button
-                      onClick={() => addArrayItem('reviews', { ratingValue: '', author: '' })}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Review
-                    </Button>
-                  </div>
-
-                  {formData.reviews?.map((review: any, index: number) => (
-                    <div key={index} className="flex gap-4 items-start">
-                      <div className="flex-1 grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Rating (out of 5)</Label>
-                          <Input
-                            value={review.ratingValue || ''}
-                            onChange={(e) => updateArrayItemField('reviews', index, 'ratingValue', e.target.value)}
-                            placeholder="4.5"
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            max="5"
-                          />
-                        </div>
-                        <div>
-                          <Label>Author Name</Label>
-                          <Input
-                            value={review.author || ''}
-                            onChange={(e) => updateArrayItemField('reviews', index, 'author', e.target.value)}
-                            placeholder="John Doe"
-                          />
-                        </div>
-                      </div>
-                      {formData.reviews.length > 1 && (
-                        <Button
-                          onClick={() => removeArrayItem('reviews', index)}
-                          size="icon"
-                          variant="ghost"
-                          className="text-destructive mt-6"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
                 </CardContent>
               </Card>
 
