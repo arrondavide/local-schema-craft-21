@@ -193,6 +193,12 @@ const SchemaGenerator = () => {
           addressCountry: data.country
         };
 
+        schema.geo = data.latitude && data.longitude ? {
+          "@type": "GeoCoordinates",
+          latitude: parseFloat(data.latitude),
+          longitude: parseFloat(data.longitude)
+        } : undefined;
+
         schema.openingHoursSpecification = data.openingHours?.map((h: any) => ({
           "@type": "OpeningHoursSpecification",
           dayOfWeek: h.days,
