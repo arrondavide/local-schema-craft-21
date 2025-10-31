@@ -1264,37 +1264,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       </div>
                       
                       <div>
-                        <Label>Clinic Name</Label>
-                        <Input
-                          value={org.name || ''}
-                          onChange={(e) => updateArrayItemField('subOrganizations', index, 'name', e.target.value)}
-                          placeholder="Branch name"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Website URL</Label>
-                        <Input
-                          value={org.url || ''}
-                          onChange={(e) => updateArrayItemField('subOrganizations', index, 'url', e.target.value)}
-                          placeholder="https://example.com"
-                          type="url"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Phone Number</Label>
-                        <Input
-                          value={org.telephone || ''}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\s/g, '');
-                            updateArrayItemField('subOrganizations', index, 'telephone', value);
-                          }}
-                          placeholder="+442012345678"
-                        />
-                      </div>
-                      
-                      <div>
                         <Label>Has Map</Label>
                         <Input
                           value={org.hasMap || ''}
@@ -1370,59 +1339,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                             placeholder="-0.1444"
                           />
                         </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Services Offered</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={org.serviceInput || ''}
-                            onChange={(e) => updateArrayItemField('subOrganizations', index, 'serviceInput', e.target.value)}
-                            placeholder="Enter a service"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const service = org.serviceInput?.trim();
-                                if (service) {
-                                  updateArrayItemField('subOrganizations', index, 'services', [...(org.services || []), service]);
-                                  updateArrayItemField('subOrganizations', index, 'serviceInput', '');
-                                }
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => {
-                              const service = org.serviceInput?.trim();
-                              if (service) {
-                                updateArrayItemField('subOrganizations', index, 'services', [...(org.services || []), service]);
-                                updateArrayItemField('subOrganizations', index, 'serviceInput', '');
-                              }
-                            }}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        {org.services && org.services.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {org.services.map((service: string, serviceIdx: number) => (
-                              <Badge
-                                key={serviceIdx}
-                                variant="secondary"
-                                className="cursor-pointer"
-                                onClick={() => {
-                                  const newServices = org.services.filter((_: string, i: number) => i !== serviceIdx);
-                                  updateArrayItemField('subOrganizations', index, 'services', newServices);
-                                }}
-                              >
-                                {service}
-                                <X className="h-3 w-3 ml-1" />
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
                       </div>
 
                       <div className="mt-4">

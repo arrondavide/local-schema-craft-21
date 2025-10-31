@@ -235,9 +235,6 @@ const SchemaGenerator = () => {
           
           return {
             "@type": orgType,
-            name: org.name,
-            url: org.url,
-            telephone: org.telephone,
             hasMap: org.hasMap,
             address: {
               "@type": "PostalAddress",
@@ -257,10 +254,6 @@ const SchemaGenerator = () => {
               dayOfWeek: h.days,
               opens: h.opens,
               closes: h.closes
-            })),
-            availableService: org.services?.map((s: string) => ({
-              "@type": "MedicalProcedure",
-              name: s
             }))
           };
         });
