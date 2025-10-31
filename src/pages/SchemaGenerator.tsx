@@ -217,6 +217,7 @@ const SchemaGenerator = () => {
           
           return {
             "@type": orgType,
+            name: org.name,
             hasMap: org.hasMap,
             address: {
               "@type": "PostalAddress",

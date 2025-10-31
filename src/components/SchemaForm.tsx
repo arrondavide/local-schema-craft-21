@@ -1235,6 +1235,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                     <CardTitle>Additional Locations (Sub-Organizations)</CardTitle>
                 <Button
                   onClick={() => addArrayItem('subOrganizations', {
+                    name: '',
                     type: ['Physician', 'MedicalClinic'],
                     hasMap: '', streetAddress: '',
                     city: '', region: '', postalCode: '', country: '',
@@ -1264,6 +1265,15 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
+                      </div>
+                      
+                      <div>
+                        <Label>Business Name</Label>
+                        <Input
+                          value={org.name || ''}
+                          onChange={(e) => updateArrayItemField('subOrganizations', index, 'name', e.target.value)}
+                          placeholder="Branch Location Name"
+                        />
                       </div>
                       
                       <div>
