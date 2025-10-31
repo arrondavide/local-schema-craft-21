@@ -1098,12 +1098,12 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
             </Card>
           )}
 
-          {/* Multiple Clinic Sub-Organizations */}
+          {/* Multiple Clinic - Same as Single Location plus Sub-Organizations */}
           {isMultiple && (
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Main Location</CardTitle>
+                  <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -1178,10 +1178,19 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Main Location Opening Hours</CardTitle>
+                  <CardTitle>Opening Hours</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderOpeningHours(formData.openingHours || [], 'openingHours')}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Available Services</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderServices(formData.services || [], 'services')}
                 </CardContent>
               </Card>
 
