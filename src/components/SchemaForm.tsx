@@ -1319,8 +1319,40 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       {/* Reviews */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Reviews</CardTitle>
+          <CardTitle>Reviews</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!isPractitioner && !isMultiple && (
+            <div className="space-y-3 pb-4 border-b mb-4">
+              <h4 className="font-medium">Aggregate Rating</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Average Rating</Label>
+                  <Input
+                    value={formData.ratingValue || ''}
+                    onChange={(e) => updateField('ratingValue', e.target.value)}
+                    placeholder="4.8"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                  />
+                </div>
+                <div>
+                  <Label>Total Review Count</Label>
+                  <Input
+                    value={formData.reviewCount || ''}
+                    onChange={(e) => updateField('reviewCount', e.target.value)}
+                    placeholder="187"
+                    type="number"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-medium">Individual Reviews</h4>
             <Button
               onClick={() => addArrayItem('reviews', { ratingValue: '', author: '' })}
               size="sm"
@@ -1330,33 +1362,6 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
               Add Review
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!isPractitioner && !isMultiple && (
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b">
-              <div>
-                <Label>Aggregate Rating</Label>
-                <Input
-                  value={formData.ratingValue || ''}
-                  onChange={(e) => updateField('ratingValue', e.target.value)}
-                  placeholder="4.8"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="5"
-                />
-              </div>
-              <div>
-                <Label>Review Count</Label>
-                <Input
-                  value={formData.reviewCount || ''}
-                  onChange={(e) => updateField('reviewCount', e.target.value)}
-                  placeholder="187"
-                  type="number"
-                />
-              </div>
-            </div>
-          )}
 
           {formData.reviews?.map((review: any, index: number) => (
             <div key={index} className="flex gap-4 items-start">
