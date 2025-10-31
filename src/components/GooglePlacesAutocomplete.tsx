@@ -34,8 +34,33 @@ const GooglePlacesAutocomplete = ({
   useEffect(() => {
     const loadGoogleMaps = async () => {
       try {
+        // Check if Google Maps is already loaded
         if (window.google && window.google.maps && window.google.maps.places) {
+          console.log('Google Maps already loaded');
           setIsLoaded(true);
+          return;
+        }
+
+        // Check if script is already being loaded
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          console.log('Google Maps script already exists, waiting for load...');
+          // Wait for it to load
+          const checkInterval = setInterval(() => {
+            if (window.google && window.google.maps && window.google.maps.places) {
+              console.log('Google Maps loaded from existing script');
+              clearInterval(checkInterval);
+              setIsLoaded(true);
+            }
+          }, 100);
+          
+          // Timeout after 10 seconds
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            if (!window.google || !window.google.maps || !window.google.maps.places) {
+              setError('Failed to load Google Maps API');
+            }
+          }, 10000);
           return;
         }
 
@@ -45,12 +70,18 @@ const GooglePlacesAutocomplete = ({
         script.defer = true;
 
         window.initAutocomplete = () => {
+          console.log('Google Maps API loaded successfully');
           setIsLoaded(true);
         };
 
+        script.onerror = () => {
+          console.error('Failed to load Google Maps script');
+          setError('Failed to load Google Maps API');
+        };
+
         document.head.appendChild(script);
-        script.onerror = () => setError('Failed to load Google Maps API');
       } catch (err) {
+        console.error('Error loading Google Maps:', err);
         setError('Error loading Google Maps API');
       }
     };
