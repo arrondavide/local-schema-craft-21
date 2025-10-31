@@ -224,30 +224,39 @@ const SchemaGenerator = () => {
         }));
 
         // Only include subOrganization if there are additional locations
-        schema.subOrganization = data.subOrganizations?.map((org: any) => ({
-          "@type": "MedicalClinic",
-          name: org.name,
-          hasMap: org.hasMap,
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: org.streetAddress,
-            addressLocality: org.city,
-            addressRegion: org.region,
-            postalCode: org.postalCode,
-            addressCountry: org.country
-          },
-          geo: org.latitude && org.longitude ? {
-            "@type": "GeoCoordinates",
-            latitude: parseFloat(org.latitude),
-            longitude: parseFloat(org.longitude)
-          } : undefined,
-          openingHoursSpecification: org.openingHours?.map((h: any) => ({
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: h.days,
-            opens: h.opens,
-            closes: h.closes
-          }))
-        }));
+        schema.subOrganization = data.subOrganizations?.map((org: any) => {
+          // Handle type - if multiple types, use array; if single, use string
+          let orgType;
+          if (org.type && org.type.length > 0) {
+            orgType = org.type.length === 1 ? org.type[0] : org.type;
+          } else {
+            orgType = ["Physician", "MedicalClinic"]; // Default
+          }
+          
+          return {
+            "@type": orgType,
+            hasMap: org.hasMap,
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: org.streetAddress,
+              addressLocality: org.city,
+              addressRegion: org.region,
+              postalCode: org.postalCode,
+              addressCountry: org.country
+            },
+            geo: org.latitude && org.longitude ? {
+              "@type": "GeoCoordinates",
+              latitude: parseFloat(org.latitude),
+              longitude: parseFloat(org.longitude)
+            } : undefined,
+            openingHoursSpecification: org.openingHours?.map((h: any) => ({
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: h.days,
+              opens: h.opens,
+              closes: h.closes
+            }))
+          };
+        });
 
         schema.review = data.reviews?.map((r: any) => ({
           "@type": "Review",

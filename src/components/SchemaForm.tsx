@@ -107,7 +107,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
 
       if (isMultiple) {
         initialData.subOrganizations = [{
-          name: '',
+          type: ['Physician', 'MedicalClinic'],
           hasMap: '',
           streetAddress: '',
           city: '',
@@ -1189,13 +1189,14 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Additional Locations (Sub-Organizations)</CardTitle>
-                    <Button
-                      onClick={() => addArrayItem('subOrganizations', {
-                        name: '', hasMap: '', streetAddress: '',
-                        city: '', region: '', postalCode: '', country: '',
-                        latitude: '', longitude: '',
-                        openingHours: [{ days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }]
-                      })}
+                <Button
+                  onClick={() => addArrayItem('subOrganizations', {
+                    type: ['Physician', 'MedicalClinic'],
+                    hasMap: '', streetAddress: '',
+                    city: '', region: '', postalCode: '', country: '',
+                    latitude: '', longitude: '',
+                    openingHours: [{ days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }]
+                  })}
                       size="sm"
                       variant="outline"
                     >
@@ -1222,12 +1223,44 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       </div>
                       
                       <div>
-                        <Label>Location Name *</Label>
-                        <Input
-                          value={org.name || ''}
-                          onChange={(e) => updateArrayItemField('subOrganizations', index, 'name', e.target.value)}
-                          placeholder="Branch Location Name"
-                        />
+                        <Label>Type (select multiple)</Label>
+                        <div className="space-y-2">
+                          <div className="flex gap-2 flex-wrap mb-2">
+                            {(org.type || []).map((type: string, typeIndex: number) => (
+                              <Badge key={typeIndex} variant="secondary" className="px-3 py-1">
+                                {type}
+                                <button
+                                  onClick={() => {
+                                    const newTypes = org.type.filter((_: string, i: number) => i !== typeIndex);
+                                    updateArrayItemField('subOrganizations', index, 'type', newTypes);
+                                  }}
+                                  className="ml-2 hover:text-destructive"
+                                  type="button"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                          <select
+                            className="w-full p-2 border rounded-md"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value && !(org.type || []).includes(value)) {
+                                updateArrayItemField('subOrganizations', index, 'type', [...(org.type || []), value]);
+                              }
+                              e.target.value = '';
+                            }}
+                            value=""
+                          >
+                            <option value="">Select type to add...</option>
+                            <option value="Physician">Physician</option>
+                            <option value="MedicalClinic">MedicalClinic</option>
+                            <option value="Dentist">Dentist</option>
+                            <option value="MedicalBusiness">MedicalBusiness</option>
+                            <option value="HealthAndBeautyBusiness">HealthAndBeautyBusiness</option>
+                          </select>
+                        </div>
                       </div>
                       
                       <div>
@@ -1306,6 +1339,11 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                             placeholder="-0.1444"
                           />
                         </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <Label className="text-lg font-medium mb-3 block">Opening Hours</Label>
+                        {renderOpeningHours(org.openingHours || [], 'subOrganizations', index)}
                       </div>
                     </div>
                   ))}
