@@ -767,31 +767,97 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                     }}
                     disabled={(formData.medicalSpecialty?.length || 0) >= 3}
                   >
-                    <option value="">Select medical specialty...</option>
-                    <option value="PrimaryCare">Primary Care</option>
-                    <option value="InternalMedicine">Internal Medicine</option>
-                    <option value="Cardiovascular">Cardiovascular</option>
-                    <option value="Pulmonary">Pulmonary</option>
-                    <option value="RespiratoryTherapy">Respiratory Therapy</option>
-                    <option value="Neurologic">Neurologic</option>
-                    <option value="Psychiatric">Psychiatric</option>
-                    <option value="Pediatrics">Pediatrics</option>
-                    <option value="Dentistry">Dentistry</option>
-                    <option value="Orthodontics">Orthodontics</option>
-                    <option value="Otolaryngologic">Otolaryngologic (ENT)</option>
-                    <option value="Ophthalmologic">Ophthalmologic</option>
-                    <option value="Orthopedic">Orthopedic</option>
-                    <option value="SportsMedicine">Sports Medicine</option>
-                    <option value="PhysicalTherapy">Physical Therapy</option>
-                    <option value="Chiropractic">Chiropractic</option>
-                    <option value="Dermatologic">Dermatologic</option>
-                    <option value="PlasticSurgery">Plastic Surgery</option>
-                    <option value="CosmeticSurgery">Cosmetic Surgery</option>
-                    <option value="Gastroenterologic">Gastroenterologic</option>
-                    <option value="Urologic">Urologic</option>
-                    <option value="Gynecologic">Gynecologic</option>
-                    <option value="Obstetric">Obstetric</option>
-                    <option value="Oncologic">Oncologic</option>
+                  <option value="">Select medical specialty...</option>
+                    <optgroup label="🧍‍♂️ General & Primary Care">
+                      <option value="PrimaryCare">Primary Care</option>
+                      <option value="GeneralPractice">General Practice</option>
+                      <option value="InternalMedicine">Internal Medicine</option>
+                    </optgroup>
+                    <optgroup label="❤️ Cardio-Pulmonary">
+                      <option value="Cardiovascular">Cardiovascular</option>
+                      <option value="Pulmonary">Pulmonary</option>
+                      <option value="RespiratoryTherapy">Respiratory Therapy</option>
+                    </optgroup>
+                    <optgroup label="🧠 Neurological & Mental Health">
+                      <option value="Neurologic">Neurologic</option>
+                      <option value="Psychiatric">Psychiatric</option>
+                      <option value="SleepMedicine">Sleep Medicine</option>
+                      <option value="Neurodevelopmental">Neurodevelopmental</option>
+                    </optgroup>
+                    <optgroup label="🧒 Paediatrics">
+                      <option value="Pediatrics">Pediatrics</option>
+                      <option value="PediatricSurgery">Pediatric Surgery</option>
+                      <option value="PediatricCardiology">Pediatric Cardiology</option>
+                      <option value="PediatricOrthopedics">Pediatric Orthopedics</option>
+                    </optgroup>
+                    <optgroup label="🦷 Dental & Oral Health">
+                      <option value="Dentistry">Dentistry</option>
+                      <option value="OralSurgery">Oral Surgery</option>
+                      <option value="Orthodontics">Orthodontics</option>
+                      <option value="Periodontics">Periodontics</option>
+                      <option value="Endodontics">Endodontics</option>
+                      <option value="Prosthodontics">Prosthodontics</option>
+                      <option value="PediatricDentistry">Pediatric Dentistry</option>
+                    </optgroup>
+                    <optgroup label="👂👃🗣 ENT & Head/Neck">
+                      <option value="Otolaryngologic">Otolaryngologic (ENT)</option>
+                      <option value="Audiologic">Audiologic</option>
+                      <option value="SpeechPathology">Speech Pathology</option>
+                    </optgroup>
+                    <optgroup label="👁 Eye & Vision">
+                      <option value="Ophthalmologic">Ophthalmologic</option>
+                      <option value="Optometric">Optometric</option>
+                      <option value="Oculoplastic">Oculoplastic</option>
+                    </optgroup>
+                    <optgroup label="🦴 Musculoskeletal & Sports">
+                      <option value="Orthopedic">Orthopedic</option>
+                      <option value="SportsMedicine">Sports Medicine</option>
+                      <option value="PhysicalTherapy">Physical Therapy</option>
+                      <option value="Chiropractic">Chiropractic</option>
+                      <option value="Rheumatologic">Rheumatologic</option>
+                      <option value="PainManagement">Pain Management</option>
+                    </optgroup>
+                    <optgroup label="🧬 Surgical & Procedural">
+                      <option value="Surgical">Surgical</option>
+                      <option value="Colorectal">Colorectal</option>
+                      <option value="Vascular">Vascular</option>
+                      <option value="PlasticSurgery">Plastic Surgery</option>
+                      <option value="Endocrine">Endocrine</option>
+                      <option value="BariatricSurgery">Bariatric Surgery</option>
+                      <option value="TransplantSurgery">Transplant Surgery</option>
+                      <option value="TraumaSurgery">Trauma Surgery</option>
+                    </optgroup>
+                    <optgroup label="💉 Aesthetic & Skin">
+                      <option value="Dermatologic">Dermatologic</option>
+                      <option value="CosmeticSurgery">Cosmetic Surgery</option>
+                      <option value="LaserTherapy">Laser Therapy</option>
+                      <option value="AestheticMedicine">Aesthetic Medicine</option>
+                    </optgroup>
+                    <optgroup label="🧫 Diagnostics & Pathology">
+                      <option value="Radiology">Radiology</option>
+                      <option value="Pathology">Pathology</option>
+                      <option value="ClinicalChemistry">Clinical Chemistry</option>
+                      <option value="Hematologic">Hematologic</option>
+                      <option value="Genetic">Genetic</option>
+                    </optgroup>
+                    <optgroup label="🧍‍♀️ Women's & Reproductive Health">
+                      <option value="Gynecologic">Gynecologic</option>
+                      <option value="Obstetric">Obstetric</option>
+                      <option value="ReproductiveEndocrinology">Reproductive Endocrinology</option>
+                      <option value="Urogynecology">Urogynecology</option>
+                    </optgroup>
+                    <optgroup label="💊 Other Specialized Areas">
+                      <option value="Gastroenterologic">Gastroenterologic</option>
+                      <option value="Urologic">Urologic</option>
+                      <option value="Oncologic">Oncologic</option>
+                      <option value="AllergyImmunology">Allergy Immunology</option>
+                      <option value="InfectiousDisease">Infectious Disease</option>
+                      <option value="Nephrologic">Nephrologic</option>
+                      <option value="Hepatology">Hepatology</option>
+                      <option value="Emergency">Emergency</option>
+                      <option value="OccupationalMedicine">Occupational Medicine</option>
+                      <option value="PublicHealth">Public Health</option>
+                    </optgroup>
                   </select>
                   <p className="text-sm text-muted-foreground">
                     Selected {(formData.medicalSpecialty?.length || 0)}/3 specialties
