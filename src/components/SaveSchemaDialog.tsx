@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Save, Cloud, CloudOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EntityType, LocationType } from '@/context/SchemaContext';
+import { saveLocalSchema, syncToSupabase } from '@/utils/schemaStorage';
 
 interface SaveSchemaDialogProps {
   entityType: EntityType | null;
@@ -18,7 +18,24 @@ export const SaveSchemaDialog = ({ entityType, locationType, formData }: SaveSch
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      syncToSupabase(); // Sync when coming back online
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -41,18 +58,24 @@ export const SaveSchemaDialog = ({ entityType, locationType, formData }: SaveSch
 
     setSaving(true);
     try {
-      const { error } = await supabase.from('schema_history').insert({
+      // Save to local storage first
+      saveLocalSchema({
         name: name.trim(),
         entity_type: entityType,
         location_type: locationType,
         schema_data: formData,
       });
 
-      if (error) throw error;
+      // Try to sync to online if available
+      if (isOnline) {
+        await syncToSupabase();
+      }
 
       toast({
         title: 'Schema saved',
-        description: 'Your schema has been saved successfully',
+        description: isOnline 
+          ? 'Your schema has been saved locally and synced online'
+          : 'Your schema has been saved locally (will sync when online)',
       });
       setName('');
       setOpen(false);
@@ -74,6 +97,11 @@ export const SaveSchemaDialog = ({ entityType, locationType, formData }: SaveSch
         <Button variant="outline" size="sm">
           <Save className="w-4 h-4 mr-2" />
           Save Schema
+          {isOnline ? (
+            <Cloud className="w-3 h-3 ml-2 text-green-500" />
+          ) : (
+            <CloudOff className="w-3 h-3 ml-2 text-muted-foreground" />
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent>

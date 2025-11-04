@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { History, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { EntityType, LocationType } from '@/context/SchemaContext';
 import { format } from 'date-fns';
@@ -17,15 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-interface SchemaHistoryItem {
-  id: string;
-  name: string;
-  entity_type: EntityType;
-  location_type: LocationType;
-  schema_data: any;
-  created_at: string;
-}
+import { loadAllSchemas, deleteSchema, SchemaHistoryItem } from '@/utils/schemaStorage';
 
 interface LoadSchemaDialogProps {
   onLoad: (entityType: EntityType, locationType: LocationType, data: any) => void;
@@ -41,13 +32,8 @@ export const LoadSchemaDialog = ({ onLoad }: LoadSchemaDialogProps) => {
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('schema_history')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setHistory((data || []) as SchemaHistoryItem[]);
+      const schemas = await loadAllSchemas();
+      setHistory(schemas);
     } catch (error) {
       console.error('Error fetching schema history:', error);
       toast({
@@ -71,10 +57,7 @@ export const LoadSchemaDialog = ({ onLoad }: LoadSchemaDialogProps) => {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase.from('schema_history').delete().eq('id', id);
-
-      if (error) throw error;
-
+      await deleteSchema(id);
       setHistory(history.filter((item) => item.id !== id));
       toast({
         title: 'Schema deleted',
