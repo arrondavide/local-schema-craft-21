@@ -34,6 +34,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
     if (isPractitioner) {
       initialData.honorificSuffix = '';
       initialData.jobTitle = '';
+      initialData.medicalSpecialty = [];
       
       if (isMultiple) {
         initialData.worksFor = [{
@@ -601,11 +602,38 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                   }}
                 >
                   <option value="">Select clinic type...</option>
-                  <option value="Physician">Physician</option>
-                  <option value="MedicalClinic">MedicalClinic</option>
-                  <option value="Dentist">Dentist</option>
-                  <option value="MedicalBusiness">MedicalBusiness</option>
-                  <option value="HealthAndBeautyBusiness">HealthAndBeautyBusiness</option>
+                  <optgroup label="General Types">
+                    <option value="Physician">Physician</option>
+                    <option value="MedicalClinic">MedicalClinic</option>
+                    <option value="Dentist">Dentist</option>
+                    <option value="MedicalBusiness">MedicalBusiness</option>
+                    <option value="HealthAndBeautyBusiness">HealthAndBeautyBusiness</option>
+                  </optgroup>
+                  <optgroup label="Medical Specialties">
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Dermatology">Dermatology</option>
+                    <option value="Gastroenterology">Gastroenterology</option>
+                    <option value="Neurology">Neurology</option>
+                    <option value="Oncology">Oncology</option>
+                    <option value="Orthopedics">Orthopedics</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Psychiatry">Psychiatry</option>
+                    <option value="Radiology">Radiology</option>
+                    <option value="Surgery">Surgery</option>
+                  </optgroup>
+                  <optgroup label="Dental">
+                    <option value="Orthodontics">Orthodontics</option>
+                    <option value="Periodontics">Periodontics</option>
+                    <option value="Endodontics">Endodontics</option>
+                    <option value="OralSurgery">Oral Surgery</option>
+                  </optgroup>
+                  <optgroup label="Allied Health">
+                    <option value="PhysicalTherapy">Physical Therapy</option>
+                    <option value="Chiropractic">Chiropractic</option>
+                    <option value="Optometry">Optometry</option>
+                    <option value="Podiatry">Podiatry</option>
+                    <option value="AestheticMedicine">Aesthetic Medicine</option>
+                  </optgroup>
                 </select>
                 <p className="text-sm text-muted-foreground">
                   Selected {(formData.clinicTypes?.length || 0)} type(s) - Select at least one
@@ -640,6 +668,115 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                   onChange={(e) => updateField('jobTitle', e.target.value)}
                   placeholder="Consultant Cardiologist"
                 />
+              </div>
+              <div>
+                <Label>Speciality (max 3)</Label>
+                <div className="space-y-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {(formData.medicalSpecialty || []).map((specialty: string, index: number) => (
+                      <Badge key={index} variant="secondary" className="px-3 py-1">
+                        {specialty}
+                        <button
+                          onClick={() => {
+                            updateField('medicalSpecialty', formData.medicalSpecialty.filter((_: string, i: number) => i !== index));
+                          }}
+                          className="ml-2 text-destructive hover:text-destructive/80"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <select
+                    className="w-full border rounded-md p-2"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value && !formData.medicalSpecialty?.includes(value) && (formData.medicalSpecialty?.length || 0) < 3) {
+                        updateField('medicalSpecialty', [...(formData.medicalSpecialty || []), value]);
+                        e.target.value = '';
+                      }
+                    }}
+                    disabled={(formData.medicalSpecialty?.length || 0) >= 3}
+                  >
+                    <option value="">Select speciality...</option>
+                    <optgroup label="Physician">
+                      <option value="Internal Medicine">Internal Medicine</option>
+                      <option value="Cardiology">Cardiology</option>
+                      <option value="Pulmonology">Pulmonology</option>
+                      <option value="Neurology">Neurology</option>
+                      <option value="Haematology">Haematology</option>
+                      <option value="Paediatrics">Paediatrics</option>
+                      <option value="Geriatrics">Geriatrics</option>
+                      <option value="Gastroenterologist">Gastroenterologist</option>
+                      <option value="Rheumatology">Rheumatology</option>
+                      <option value="Dermatology">Dermatology</option>
+                      <option value="Aesthetic">Aesthetic</option>
+                      <option value="Psychiatry">Psychiatry</option>
+                      <option value="Nephrology">Nephrology</option>
+                      <option value="Pain Management">Pain Management</option>
+                      <option value="Rehabilitation">Rehabilitation</option>
+                      <option value="Respiratory">Respiratory</option>
+                      <option value="Hepatology">Hepatology</option>
+                      <option value="Oncology">Oncology</option>
+                      <option value="Sleep Medicine">Sleep Medicine</option>
+                      <option value="Endocrinology">Endocrinology</option>
+                    </optgroup>
+                    <optgroup label="Surgeon">
+                      <option value="General Surgery">General Surgery</option>
+                      <option value="Cardiac Surgery">Cardiac Surgery</option>
+                      <option value="Thoracic Surgery">Thoracic Surgery</option>
+                      <option value="Neurosurgery">Neurosurgery</option>
+                      <option value="Cardiothoracic Surgery">Cardiothoracic Surgery</option>
+                      <option value="Pediatric Surgery">Pediatric Surgery</option>
+                      <option value="Orthopedic Surgery">Orthopedic Surgery</option>
+                      <option value="Upper G I Surgery">Upper G I Surgery</option>
+                      <option value="Colorectal Surgery">Colorectal Surgery</option>
+                      <option value="Plastic Surgery">Plastic Surgery</option>
+                      <option value="Aesthetic Surgery">Aesthetic Surgery</option>
+                      <option value="Gynecology">Gynecology</option>
+                      <option value="Urogynecology">Urogynecology</option>
+                      <option value="Urology">Urology</option>
+                      <option value="Obstetrics">Obstetrics</option>
+                      <option value="Maxillofacial Surgery">Maxillofacial Surgery</option>
+                      <option value="Robotic Assisted Surgery">Robotic Assisted Surgery</option>
+                      <option value="Laparoscopic Surgery">Laparoscopic Surgery</option>
+                      <option value="Key Hole Surgery">Key Hole Surgery</option>
+                      <option value="Oncosurgery">Oncosurgery</option>
+                      <option value="Bariatric Surgery">Bariatric Surgery</option>
+                      <option value="Weight Reduction Surgery">Weight Reduction Surgery</option>
+                      <option value="Trauma Surgery">Trauma Surgery</option>
+                      <option value="Cosmetic Surgery">Cosmetic Surgery</option>
+                    </optgroup>
+                    <optgroup label="Dentistry">
+                      <option value="Endodontics">Endodontics</option>
+                      <option value="Orthodontics">Orthodontics</option>
+                      <option value="Prosthodontics">Prosthodontics</option>
+                      <option value="Periodontics">Periodontics</option>
+                      <option value="Oral and Maxillofacial Surgery">Oral and Maxillofacial Surgery</option>
+                      <option value="General Dentistry">General Dentistry</option>
+                      <option value="Cosmetic Dentistry">Cosmetic Dentistry</option>
+                      <option value="Pediatric Dentistry">Pediatric Dentistry</option>
+                      <option value="Pedodontist">Pedodontist</option>
+                      <option value="Orofacial Pain">Orofacial Pain</option>
+                      <option value="Dental Hygienist">Dental Hygienist</option>
+                    </optgroup>
+                    <optgroup label="Others">
+                      <option value="Aesthetic Medicine">Aesthetic Medicine</option>
+                      <option value="Chiropractic">Chiropractic</option>
+                      <option value="Podiatrics">Podiatrics</option>
+                      <option value="Podiatrist">Podiatrist</option>
+                      <option value="Optometry">Optometry</option>
+                      <option value="Diagnostic Imaging">Diagnostic Imaging</option>
+                      <option value="Sports Therapy">Sports Therapy</option>
+                      <option value="Audiologist">Audiologist</option>
+                      <option value="Respiratory Therapist">Respiratory Therapist</option>
+                      <option value="Dietician">Dietician</option>
+                    </optgroup>
+                  </select>
+                  <p className="text-sm text-muted-foreground">
+                    Selected {(formData.medicalSpecialty?.length || 0)}/3 specialities
+                  </p>
+                </div>
               </div>
             </>
           )}

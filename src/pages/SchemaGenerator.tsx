@@ -64,6 +64,7 @@ const SchemaGenerator = () => {
       schema.url = data.url;
       schema.telephone = data.telephone;
       schema.sameAs = data.sameAs;
+      schema.medicalSpecialty = data.medicalSpecialty;
 
       if (isMultiple) {
         // Multiple locations - all share the same services
