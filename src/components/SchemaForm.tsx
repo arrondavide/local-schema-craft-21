@@ -83,7 +83,8 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
       }];
     } else {
       // Clinic
-      initialData.clinicTypes = ['Physician', 'MedicalClinic']; // Default types
+      initialData.clinicTypes = ['Private Healthcare']; // Default type
+      initialData.isCustomClinicName = false;
       initialData.description = '';
       initialData.email = '';
       initialData.priceRange = '';
@@ -109,7 +110,7 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
 
       if (isMultiple) {
         initialData.subOrganizations = [{
-          type: ['Physician', 'MedicalClinic'],
+          type: ['Private Healthcare'],
           hasMap: '',
           streetAddress: '',
           city: '',
@@ -574,83 +575,100 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
         </CardHeader>
         <CardContent className="space-y-4">
           {!isPractitioner && (
-            <div>
-              <Label>Clinic Type (@type) *</Label>
-              <div className="space-y-2">
-                <div className="flex gap-2 flex-wrap">
-                  {(formData.clinicTypes || []).map((type: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="px-3 py-1">
-                      {type}
-                      <button
-                        onClick={() => {
-                          updateField('clinicTypes', formData.clinicTypes.filter((_: string, i: number) => i !== index));
-                        }}
-                        className="ml-2 text-destructive hover:text-destructive/80"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
+            <>
+              <div>
+                <Label>Clinic Type (@type) *</Label>
+                <div className="space-y-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {(formData.clinicTypes || []).map((type: string, index: number) => (
+                      <Badge key={index} variant="secondary" className="px-3 py-1">
+                        {type}
+                        <button
+                          onClick={() => {
+                            updateField('clinicTypes', formData.clinicTypes.filter((_: string, i: number) => i !== index));
+                          }}
+                          className="ml-2 text-destructive hover:text-destructive/80"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <select
+                    className="w-full border rounded-md p-2"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value && !formData.clinicTypes?.includes(value)) {
+                        updateField('clinicTypes', [...(formData.clinicTypes || []), value]);
+                        e.target.value = '';
+                      }
+                    }}
+                  >
+                    <option value="">Select clinic type...</option>
+                    <option value="Private Healthcare">Private Healthcare</option>
+                    <option value="Dentistry">Dentistry</option>
+                    <option value="Primary Care ( GP / Dental Practice)">Primary Care ( GP / Dental Practice)</option>
+                    <option value="Mental Health">Mental Health</option>
+                    <option value="Aesthetic Healthcare">Aesthetic Healthcare</option>
+                    <option value="Allied Healthcare">Allied Healthcare</option>
+                  </select>
+                  <p className="text-sm text-muted-foreground">
+                    Selected {(formData.clinicTypes?.length || 0)} type(s) - Select at least one
+                  </p>
                 </div>
-                <select
-                  className="w-full border rounded-md p-2"
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value && !formData.clinicTypes?.includes(value)) {
-                      updateField('clinicTypes', [...(formData.clinicTypes || []), value]);
-                      e.target.value = '';
-                    }
-                  }}
-                >
-                  <option value="">Select clinic type...</option>
-                  <optgroup label="General Types">
-                    <option value="Physician">Physician</option>
-                    <option value="MedicalClinic">MedicalClinic</option>
-                    <option value="Dentist">Dentist</option>
-                    <option value="MedicalBusiness">MedicalBusiness</option>
-                    <option value="HealthAndBeautyBusiness">HealthAndBeautyBusiness</option>
-                  </optgroup>
-                  <optgroup label="Medical Specialties">
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="Dermatology">Dermatology</option>
-                    <option value="Gastroenterology">Gastroenterology</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="Oncology">Oncology</option>
-                    <option value="Orthopedics">Orthopedics</option>
-                    <option value="Pediatrics">Pediatrics</option>
-                    <option value="Psychiatry">Psychiatry</option>
-                    <option value="Radiology">Radiology</option>
-                    <option value="Surgery">Surgery</option>
-                  </optgroup>
-                  <optgroup label="Dental">
-                    <option value="Orthodontics">Orthodontics</option>
-                    <option value="Periodontics">Periodontics</option>
-                    <option value="Endodontics">Endodontics</option>
-                    <option value="OralSurgery">Oral Surgery</option>
-                  </optgroup>
-                  <optgroup label="Allied Health">
-                    <option value="PhysicalTherapy">Physical Therapy</option>
-                    <option value="Chiropractic">Chiropractic</option>
-                    <option value="Optometry">Optometry</option>
-                    <option value="Podiatry">Podiatry</option>
-                    <option value="AestheticMedicine">Aesthetic Medicine</option>
-                  </optgroup>
-                </select>
-                <p className="text-sm text-muted-foreground">
-                  Selected {(formData.clinicTypes?.length || 0)} type(s) - Select at least one
-                </p>
               </div>
-            </div>
+
+              <div>
+                <Label>Clinic Name *</Label>
+                <div className="space-y-2">
+                  <select
+                    className="w-full border rounded-md p-2"
+                    value={formData.name === '' ? '' : (formData.isCustomClinicName ? 'custom' : formData.name)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'custom') {
+                        updateField('isCustomClinicName', true);
+                        updateField('name', '');
+                      } else {
+                        updateField('isCustomClinicName', false);
+                        updateField('name', value);
+                      }
+                    }}
+                  >
+                    <option value="">Select clinic name...</option>
+                    <option value="BUPA Healthcare">BUPA Healthcare</option>
+                    <option value="Spire Health Care">Spire Health Care</option>
+                    <option value="HCA Healthcare">HCA Healthcare</option>
+                    <option value="BMI Healthcare">BMI Healthcare</option>
+                    <option value="Circle Health Group">Circle Health Group</option>
+                    <option value="Practice Plus Group">Practice Plus Group</option>
+                    <option value="Cromwell Hospital">Cromwell Hospital</option>
+                    <option value="The Harley Street Clinic">The Harley Street Clinic</option>
+                    <option value="custom">Other (Enter custom name)</option>
+                  </select>
+                  
+                  {formData.isCustomClinicName && (
+                    <Input
+                      value={formData.name || ''}
+                      onChange={(e) => updateField('name', e.target.value)}
+                      placeholder="Enter custom clinic name"
+                    />
+                  )}
+                </div>
+              </div>
+            </>
           )}
 
-          <div>
-            <Label>{isPractitioner ? 'Full Name' : 'Clinic Name'} *</Label>
-            <Input
-              value={formData.name || ''}
-              onChange={(e) => updateField('name', e.target.value)}
-              placeholder={isPractitioner ? 'Dr. John Smith' : 'Elegant Aesthetic Clinic'}
-            />
-          </div>
+          {isPractitioner && (
+            <div>
+              <Label>Full Name *</Label>
+              <Input
+                value={formData.name || ''}
+                onChange={(e) => updateField('name', e.target.value)}
+                placeholder="Dr. John Smith"
+              />
+            </div>
+          )}
 
           {isPractitioner && (
             <>
