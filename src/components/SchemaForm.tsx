@@ -709,8 +709,16 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       className="w-full border rounded-md p-2"
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (value && !formData.medicalSpecialty?.includes(value) && (formData.medicalSpecialty?.length || 0) < 3) {
-                          updateField('medicalSpecialty', [...(formData.medicalSpecialty || []), value]);
+                        if (value && (formData.medicalSpecialty?.length || 0) < 3) {
+                          // Add both category and specialty
+                          const currentSpecialties = formData.medicalSpecialty || [];
+                          if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
+                            currentSpecialties.push(selectedSpecialtyCategory);
+                          }
+                          if (!currentSpecialties.includes(value)) {
+                            currentSpecialties.push(value);
+                          }
+                          updateField('medicalSpecialty', currentSpecialties);
                           e.target.value = '';
                         }
                       }}
@@ -943,8 +951,16 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       className="w-full border rounded-md p-2"
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (value && !formData.medicalSpecialty?.includes(value) && (formData.medicalSpecialty?.length || 0) < 3) {
-                          updateField('medicalSpecialty', [...(formData.medicalSpecialty || []), value]);
+                        if (value && (formData.medicalSpecialty?.length || 0) < 3) {
+                          // Add both category and specialty
+                          const currentSpecialties = formData.medicalSpecialty || [];
+                          if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
+                            currentSpecialties.push(selectedSpecialtyCategory);
+                          }
+                          if (!currentSpecialties.includes(value)) {
+                            currentSpecialties.push(value);
+                          }
+                          updateField('medicalSpecialty', currentSpecialties);
                           e.target.value = '';
                         }
                       }}
