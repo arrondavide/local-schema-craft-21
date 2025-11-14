@@ -19,6 +19,10 @@ interface SchemaFormProps {
 const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps) => {
   const [formData, setFormData] = useState<any>({});
   const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] = useState<string>('');
+  const [customSpecialty, setCustomSpecialty] = useState<string>('');
+  const [customClinicType, setCustomClinicType] = useState<string>('');
+  const [showCustomSpecialty, setShowCustomSpecialty] = useState<boolean>(false);
+  const [showCustomClinicType, setShowCustomClinicType] = useState<boolean>(false);
 
   const isPractitioner = entityType === 'practitioner';
   const isMultiple = locationType === 'multiple';
@@ -598,7 +602,9 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                     className="w-full border rounded-md p-2"
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value && !formData.clinicTypes?.includes(value)) {
+                      if (value === 'custom') {
+                        setShowCustomClinicType(true);
+                      } else if (value && !formData.clinicTypes?.includes(value)) {
                         updateField('clinicTypes', [...(formData.clinicTypes || []), value]);
                         e.target.value = '';
                       }
@@ -611,7 +617,52 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                     <option value="Mental Health">Mental Health</option>
                     <option value="Aesthetic Healthcare">Aesthetic Healthcare</option>
                     <option value="Allied Healthcare">Allied Healthcare</option>
+                    <option value="custom">Other (Enter custom type)</option>
                   </select>
+                  
+                  {showCustomClinicType && (
+                    <div className="flex gap-2">
+                      <Input
+                        value={customClinicType}
+                        onChange={(e) => setCustomClinicType(e.target.value)}
+                        placeholder="Enter custom clinic type"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && customClinicType.trim()) {
+                            if (!formData.clinicTypes?.includes(customClinicType.trim())) {
+                              updateField('clinicTypes', [...(formData.clinicTypes || []), customClinicType.trim()]);
+                            }
+                            setCustomClinicType('');
+                            setShowCustomClinicType(false);
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (customClinicType.trim() && !formData.clinicTypes?.includes(customClinicType.trim())) {
+                            updateField('clinicTypes', [...(formData.clinicTypes || []), customClinicType.trim()]);
+                          }
+                          setCustomClinicType('');
+                          setShowCustomClinicType(false);
+                        }}
+                        size="sm"
+                      >
+                        Add
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setCustomClinicType('');
+                          setShowCustomClinicType(false);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  
                   <p className="text-sm text-muted-foreground">
                     Selected {(formData.clinicTypes?.length || 0)} type(s) - Select at least one
                   </p>
@@ -727,7 +778,9 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       className="w-full border rounded-md p-2"
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (value && (formData.medicalSpecialty?.length || 0) < 3) {
+                        if (value === 'custom') {
+                          setShowCustomSpecialty(true);
+                        } else if (value && (formData.medicalSpecialty?.length || 0) < 3) {
                           // Add both category and specialty
                           const currentSpecialties = formData.medicalSpecialty || [];
                           if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
@@ -825,7 +878,64 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                           <option value="Dietician">Dietician</option>
                         </>
                       )}
+                      <option value="custom">Other (Enter custom specialty)</option>
                     </select>
+                  )}
+                  
+                  {showCustomSpecialty && selectedSpecialtyCategory && (
+                    <div className="flex gap-2">
+                      <Input
+                        value={customSpecialty}
+                        onChange={(e) => setCustomSpecialty(e.target.value)}
+                        placeholder="Enter custom specialty"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && customSpecialty.trim() && (formData.medicalSpecialty?.length || 0) < 3) {
+                            const currentSpecialties = formData.medicalSpecialty || [];
+                            if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
+                              currentSpecialties.push(selectedSpecialtyCategory);
+                            }
+                            if (!currentSpecialties.includes(customSpecialty.trim())) {
+                              currentSpecialties.push(customSpecialty.trim());
+                            }
+                            updateField('medicalSpecialty', currentSpecialties);
+                            setCustomSpecialty('');
+                            setShowCustomSpecialty(false);
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (customSpecialty.trim() && (formData.medicalSpecialty?.length || 0) < 3) {
+                            const currentSpecialties = formData.medicalSpecialty || [];
+                            if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
+                              currentSpecialties.push(selectedSpecialtyCategory);
+                            }
+                            if (!currentSpecialties.includes(customSpecialty.trim())) {
+                              currentSpecialties.push(customSpecialty.trim());
+                            }
+                            updateField('medicalSpecialty', currentSpecialties);
+                          }
+                          setCustomSpecialty('');
+                          setShowCustomSpecialty(false);
+                        }}
+                        size="sm"
+                        disabled={(formData.medicalSpecialty?.length || 0) >= 3}
+                      >
+                        Add
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setCustomSpecialty('');
+                          setShowCustomSpecialty(false);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   )}
                   
                   <p className="text-sm text-muted-foreground">
@@ -969,7 +1079,9 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                       className="w-full border rounded-md p-2"
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (value && (formData.medicalSpecialty?.length || 0) < 3) {
+                        if (value === 'custom') {
+                          setShowCustomSpecialty(true);
+                        } else if (value && (formData.medicalSpecialty?.length || 0) < 3) {
                           // Add both category and specialty
                           const currentSpecialties = formData.medicalSpecialty || [];
                           if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
@@ -1067,7 +1179,64 @@ const SchemaForm = ({ entityType, locationType, onDataChange }: SchemaFormProps)
                           <option value="Dietician">Dietician</option>
                         </>
                       )}
+                      <option value="custom">Other (Enter custom specialty)</option>
                     </select>
+                  )}
+                  
+                  {showCustomSpecialty && selectedSpecialtyCategory && (
+                    <div className="flex gap-2">
+                      <Input
+                        value={customSpecialty}
+                        onChange={(e) => setCustomSpecialty(e.target.value)}
+                        placeholder="Enter custom specialty"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && customSpecialty.trim() && (formData.medicalSpecialty?.length || 0) < 3) {
+                            const currentSpecialties = formData.medicalSpecialty || [];
+                            if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
+                              currentSpecialties.push(selectedSpecialtyCategory);
+                            }
+                            if (!currentSpecialties.includes(customSpecialty.trim())) {
+                              currentSpecialties.push(customSpecialty.trim());
+                            }
+                            updateField('medicalSpecialty', currentSpecialties);
+                            setCustomSpecialty('');
+                            setShowCustomSpecialty(false);
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (customSpecialty.trim() && (formData.medicalSpecialty?.length || 0) < 3) {
+                            const currentSpecialties = formData.medicalSpecialty || [];
+                            if (!currentSpecialties.includes(selectedSpecialtyCategory)) {
+                              currentSpecialties.push(selectedSpecialtyCategory);
+                            }
+                            if (!currentSpecialties.includes(customSpecialty.trim())) {
+                              currentSpecialties.push(customSpecialty.trim());
+                            }
+                            updateField('medicalSpecialty', currentSpecialties);
+                          }
+                          setCustomSpecialty('');
+                          setShowCustomSpecialty(false);
+                        }}
+                        size="sm"
+                        disabled={(formData.medicalSpecialty?.length || 0) >= 3}
+                      >
+                        Add
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setCustomSpecialty('');
+                          setShowCustomSpecialty(false);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   )}
                   
                   <p className="text-sm text-muted-foreground">
